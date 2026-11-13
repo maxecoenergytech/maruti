@@ -45,6 +45,11 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 \App\Filament\Widgets\CrmOverviewStats::class,
+                \App\Filament\Widgets\MonthlyTargetProgressBar::class,
+                \App\Filament\Widgets\QuotationStatusChart::class,
+                \App\Filament\Widgets\PipelineByStageWidget::class,
+                \App\Filament\Widgets\TopClientsTable::class,
+                \App\Filament\Widgets\ExpiringQuotationsTable::class,
                 \App\Filament\Widgets\OverdueFollowUpsTable::class,
             ])
             ->middleware([

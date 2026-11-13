@@ -72,6 +72,15 @@ class ManageCompanySettings extends Page implements HasForms
                                     ->default('MSS')
                                     ->required()
                                     ->maxLength(10),
+                                Forms\Components\FileUpload::make('logo_path')
+                                    ->label('Company Logo')
+                                    ->image()
+                                    ->disk('public')
+                                    ->directory('company')
+                                    ->visibility('public')
+                                    ->imagePreviewHeight('90')
+                                    ->helperText('Upload or replace logo used on letterhead and Quotation PDFs (defaults to maruti-logo.png).')
+                                    ->columnSpanFull(),
                             ])->columns(2),
 
                         Forms\Components\Tabs\Tab::make('GST & Location')

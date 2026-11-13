@@ -14,44 +14,44 @@
             font-family: 'DejaVu Sans', sans-serif;
             font-size: 9pt;
             line-height: 1.35;
-            color: #1f2937;
+            color: #111827;
             margin: 0;
             padding: 0;
         }
 
         .header-table {
             width: 100%;
-            border-bottom: 2px solid #1e3a8a;
+            border-bottom: 2px solid #BE9223;
             padding-bottom: 8px;
             margin-bottom: 10px;
         }
 
         .company-name {
-            font-size: 17pt;
+            font-size: 16pt;
             font-weight: bold;
-            color: #1e3a8a;
+            color: #3F527D;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin: 0;
         }
 
         .company-tagline {
-            font-size: 9pt;
+            font-size: 8.5pt;
             font-weight: bold;
-            color: #4b5563;
+            color: #374151;
             margin: 2px 0 4px 0;
         }
 
         .company-details {
             font-size: 8pt;
-            color: #374151;
-            line-height: 1.3;
+            color: #1f2937;
+            line-height: 1.35;
         }
 
         .quotation-badge {
-            background-color: #1e3a8a;
+            background-color: #3F527D;
             color: #ffffff;
-            font-size: 13pt;
+            font-size: 12pt;
             font-weight: bold;
             text-align: center;
             padding: 5px 12px;
@@ -90,9 +90,9 @@
 
         .party-title {
             font-weight: bold;
-            color: #1e3a8a;
+            color: #3F527D;
             font-size: 9pt;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1.5px solid #BE9223;
             padding-bottom: 3px;
             margin-bottom: 4px;
             text-transform: uppercase;
@@ -114,19 +114,20 @@
         }
 
         .items-table th {
-            background-color: #1e3a8a;
+            background-color: #3F527D;
             color: #ffffff;
             font-weight: bold;
             font-size: 8pt;
             padding: 6px 4px;
-            border: 1px solid #1e3a8a;
+            border: 1px solid #3F527D;
             text-align: center;
         }
 
         .items-table td {
             padding: 5px 4px;
-            border: 1px solid #d1d5db;
+            border: 1px solid #9ca3af;
             font-size: 8pt;
+            color: #111827;
             vertical-align: top;
         }
 
@@ -163,14 +164,14 @@
         }
 
         .grand-total-row {
-            background-color: #1e3a8a;
+            background-color: #3F527D;
             color: #ffffff;
             font-size: 9.5pt;
             font-weight: bold;
         }
 
         .grand-total-row td {
-            border: 1px solid #1e3a8a;
+            border: 1px solid #3F527D;
             color: #ffffff;
             padding: 5px 6px;
         }
@@ -188,9 +189,12 @@
 
         .terms-title {
             font-weight: bold;
-            color: #1e3a8a;
+            color: #3F527D;
             margin-bottom: 3px;
             text-transform: uppercase;
+            border-bottom: 1.5px solid #BE9223;
+            display: inline-block;
+            padding-bottom: 2px;
         }
 
         .bottom-section {
@@ -239,17 +243,34 @@
     <!-- Header -->
     <table class="header-table">
         <tr>
-            <td style="width: 65%; vertical-align: top;">
-                <h1 class="company-name">{{ $company->company_name }}</h1>
-                <div class="company-tagline">{{ $company->tagline }}</div>
-                <div class="company-details">
-                    {{ $company->address_line1 }}<br>
-                    @if($company->address_line2){{ $company->address_line2 }}, @endif{{ $company->city }} - {{ $company->pincode }}, {{ $company->state }}<br>
-                    Ph: {{ $company->phone }} | Email: {{ $company->email }}<br>
-                    <strong>GSTIN:</strong> {{ $company->gstin }} | <strong>PAN:</strong> {{ $company->pan }} | <strong>State Code:</strong> {{ $company->state_code }}
-                </div>
+            <td style="width: 68%; vertical-align: top;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        @php
+                            $logoData = $company->getLogoDataUri();
+                            $logoPath = $company->getLogoFullPath();
+                        @endphp
+                        @if ($logoData || $logoPath)
+                            <td style="width: 38mm; vertical-align: top; padding-right: 10px;">
+                                <img src="{{ $logoData ?: 'file:///' . str_replace('\\', '/', $logoPath) }}" 
+                                     style="width: 35mm; max-width: 35mm; height: auto; display: block;" 
+                                     alt="Logo">
+                            </td>
+                        @endif
+                        <td style="vertical-align: top;">
+                            <h1 class="company-name">{{ $company->company_name }}</h1>
+                            <div class="company-tagline">{{ $company->tagline }}</div>
+                            <div class="company-details">
+                                {{ $company->address_line1 }}<br>
+                                @if($company->address_line2){{ $company->address_line2 }}, @endif{{ $company->city }} - {{ $company->pincode }}, {{ $company->state }}<br>
+                                Ph: {{ $company->phone }} | Email: {{ $company->email }}<br>
+                                <strong>GSTIN:</strong> {{ $company->gstin }} | <strong>PAN:</strong> {{ $company->pan }} | <strong>State Code:</strong> {{ $company->state_code }}
+                            </div>
+                        </td>
+                    </tr>
+                </table>
             </td>
-            <td style="width: 35%; vertical-align: top; text-align: right;">
+            <td style="width: 32%; vertical-align: top; text-align: right;">
                 <div class="quotation-badge">
                     QUOTATION{{ $quotation->revision_number > 0 ? ' (REV R' . $quotation->revision_number . ')' : '' }}
                 </div>
@@ -257,7 +278,7 @@
                     <table align="right">
                         <tr>
                             <td class="text-right font-bold">Quote No:</td>
-                            <td class="text-left font-bold" style="color: #1e3a8a;">{{ $quotation->quotation_number }}</td>
+                            <td class="text-left font-bold" style="color: #3F527D;">{{ $quotation->quotation_number }}</td>
                         </tr>
                         <tr>
                             <td class="text-right font-bold">Date:</td>
@@ -346,7 +367,7 @@
         <tr>
             <!-- Amount in Words -->
             <td class="words-box">
-                <div class="font-bold" style="color: #1e3a8a; margin-bottom: 3px;">Amount Chargeable (in words):</div>
+                <div class="font-bold" style="color: #3F527D; margin-bottom: 3px; border-bottom: 1.5px solid #BE9223; display: inline-block; padding-bottom: 1px;">Amount Chargeable (in words):</div>
                 <div class="font-bold" style="font-size: 9pt; color: #111827;">{{ $quotation->amount_in_words }}</div>
                 @if ($quotation->notes)
                     <div style="margin-top: 8px; border-top: 1px dashed #d1d5db; padding-top: 4px;">
@@ -419,7 +440,7 @@
     <table class="bottom-section">
         <tr>
             <td class="bank-details-cell">
-                <div class="font-bold" style="color: #1e3a8a; margin-bottom: 2px;">Bank Details for Remittance:</div>
+                <div class="font-bold" style="color: #3F527D; margin-bottom: 2px; border-bottom: 1.5px solid #BE9223; display: inline-block; padding-bottom: 1px;">Bank Details for Remittance:</div><br>
                 <strong>Bank Name:</strong> {{ $company->bank_name ?: 'State Bank of India' }}<br>
                 <strong>A/C Name:</strong> {{ $company->bank_account_name ?: $company->company_name }}<br>
                 <strong>A/C No:</strong> {{ $company->bank_account_no ?: '38472910482' }}<br>

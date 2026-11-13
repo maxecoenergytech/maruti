@@ -72,11 +72,53 @@ class CompanySetting extends Model
             'bank_ifsc' => 'SBIN0003295',
             'bank_branch' => 'G.S. Road Branch, Guwahati',
             'quotation_prefix' => 'MSS',
+            'logo_path' => 'maruti-logo.png',
             'quotation_default_terms' => "1. Payment: 50% advance along with confirmed purchase order, remaining 50% upon delivery/installation.\n2. Warranty: Standard OEM warranty applicable. No warranty for physical or water damage.\n3. Taxes: GST is charged as applicable per HSN/SAC code.\n4. Delivery: Within 3 to 7 working days from date of purchase order.\n5. Validity: This quotation is valid for 15 days from the date of issue.",
             'signatory_title' => 'Authorized Signatory',
             'jurisdiction_text' => 'Subject to Guwahati jurisdiction',
             'show_signature_on_pdf' => false,
             'show_computer_generated_note' => false,
         ]);
+    }
+
+    /**
+     * Resolve the absolute path to the logo file on disk.
+     */
+    public function getLogoFullPath(): ?string
+    {
+        if (! $this->logo_path) {
+            $default = public_path('images/maruti-logo.png');
+            return file_exists($default) ? $default : null;
+        }
+
+        $candidates = [
+            public_path('images/' . $this->logo_path),
+            public_path($this->logo_path),
+            storage_path('app/public/' . $this->logo_path),
+            storage_path('app/public/company/' . $this->logo_path),
+        ];
+
+        foreach ($candidates as $path) {
+            if (file_exists($path) && ! is_dir($path)) {
+                return $path;
+            }
+        }
+
+        $default = public_path('images/maruti-logo.png');
+        return file_exists($default) ? $default : null;
+    }
+
+    /**
+     * Base64 data URI for reliable embedding in DomPDF and inline views.
+     */
+    public function getLogoDataUri(): ?string
+    {
+        $path = $this->getLogoFullPath();
+        if ($path && file_exists($path)) {
+            $mime = mime_content_type($path) ?: 'image/png';
+            $data = base64_encode(file_get_contents($path));
+            return "data:{$mime};base64,{$data}";
+        }
+        return null;
     }
 }

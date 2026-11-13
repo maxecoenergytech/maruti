@@ -28,8 +28,13 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName('Maruti Sales & Services')
+            ->brandLogo(asset('images/maruti-logo.png'))
+            ->brandLogoHeight('2.6rem')
+            ->favicon(asset('images/maruti-favicon.png'))
             ->colors([
-                'primary' => Color::Blue,
+                'primary' => Color::hex('#BE9223'),
+                'secondary' => Color::hex('#3F527D'),
+                'info' => Color::hex('#3F527D'),
             ])
             ->navigationGroups([
                 'CRM',

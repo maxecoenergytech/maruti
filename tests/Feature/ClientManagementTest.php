@@ -125,6 +125,11 @@ class ClientManagementTest extends TestCase
         $this->assertEquals('+91 70022 53021', $settings->phone);
         $this->assertEquals('smarutisales@gmail.com', $settings->email);
         $this->assertEquals('MSS', $settings->quotation_prefix);
+        $this->assertEquals('maruti-logo.png', $settings->logo_path);
+        $this->assertFileExists(public_path('images/maruti-logo.png'));
+        $this->assertFileExists(public_path('images/maruti-favicon.png'));
+        $this->assertNotNull($settings->getLogoFullPath());
+        $this->assertNotNull($settings->getLogoDataUri());
         $this->assertEquals('Subject to Guwahati jurisdiction', $settings->jurisdiction_text);
         $this->assertFalse($settings->show_signature_on_pdf);
     }

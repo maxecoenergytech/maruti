@@ -20,6 +20,7 @@ class UserSeeder extends Seeder
                 'role' => UserRole::Admin,
                 'phone' => '+91 98640 11223',
                 'is_active' => true,
+                'must_change_password' => true,
                 'email_verified_at' => now(),
             ]
         );
@@ -33,6 +34,7 @@ class UserSeeder extends Seeder
                 'role' => UserRole::SalesExecutive,
                 'phone' => '+91 94350 44556',
                 'is_active' => true,
+                'must_change_password' => true,
                 'email_verified_at' => now(),
             ]
         );
@@ -46,6 +48,7 @@ class UserSeeder extends Seeder
                 'role' => UserRole::SalesExecutive,
                 'phone' => '+91 97060 77889',
                 'is_active' => true,
+                'must_change_password' => true,
                 'email_verified_at' => now(),
             ]
         );

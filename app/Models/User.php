@@ -22,6 +22,7 @@ class User extends Authenticatable implements FilamentUser
         'role',
         'phone',
         'is_active',
+        'must_change_password',
     ];
 
     protected $hidden = [
@@ -36,6 +37,7 @@ class User extends Authenticatable implements FilamentUser
             'password' => 'hashed',
             'role' => UserRole::class,
             'is_active' => 'boolean',
+            'must_change_password' => 'boolean',
         ];
     }
 

@@ -207,6 +207,7 @@ class ProspectAndFollowUpTest extends TestCase
     public function test_kanban_board_route_is_accessible_to_authenticated_user(): void
     {
         $admin = User::where('role', UserRole::Admin)->first();
+        $admin->update(['must_change_password' => false]);
         $response = $this->actingAs($admin)->get('/admin/prospects/kanban');
 
         $response->assertSuccessful();

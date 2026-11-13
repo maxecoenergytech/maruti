@@ -60,6 +60,11 @@ class QuotationPolicy
         return $user->isAdmin();
     }
 
+    public function createRevision(User $user, Quotation $quotation): bool
+    {
+        return $this->view($user, $quotation);
+    }
+
     public function forceDelete(User $user, Quotation $quotation): bool
     {
         return $user->isAdmin();

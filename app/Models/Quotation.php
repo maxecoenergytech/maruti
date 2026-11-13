@@ -123,6 +123,103 @@ class Quotation extends Model
         return $this->hasMany(QuotationActivity::class)->latest('created_at');
     }
 
+    /**
+     * Create a new revision from this quotation.
+     */
+    public function createRevision(?User $user = null): Quotation
+    {
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($user) {
+            $user ??= auth()->user();
+            $rootParentId = $this->parent_quotation_id ?: $this->id;
+            $rootParent = $this->parent_quotation_id ? $this->parentQuotation : $this;
+
+            // Count existing revisions for this root quotation
+            $existingRevisionsCount = Quotation::withTrashed()
+                ->where('parent_quotation_id', $rootParentId)
+                ->count();
+
+            $nextRevNo = $existingRevisionsCount + 1;
+            $baseNumber = preg_replace('/\/R\d+$/i', '', $rootParent->quotation_number);
+            $newQuoteNumber = "{$baseNumber}/R{$nextRevNo}";
+
+            // Mark all existing revisions in this family as not latest
+            Quotation::where('id', $rootParentId)
+                ->orWhere('parent_quotation_id', $rootParentId)
+                ->update(['is_latest_revision' => false]);
+
+            // Create new revision record
+            $revision = new Quotation();
+            $revision->fill([
+                'quotation_number' => $newQuoteNumber,
+                'financial_year' => $rootParent->financial_year,
+                'sequence_no' => $rootParent->sequence_no,
+                'revision_number' => $nextRevNo,
+                'is_latest_revision' => true,
+                'parent_quotation_id' => $rootParentId,
+                'client_id' => $this->client_id,
+                'client_name' => $this->client_name,
+                'billing_address' => $this->billing_address ?: ($this->client?->billing_address ?: 'Guwahati, Assam'),
+                'shipping_address' => $this->shipping_address,
+                'gstin' => $this->gstin,
+                'state' => $this->state ?: 'Assam',
+                'state_code' => $this->state_code ?: '18',
+                'quotation_date' => today(),
+                'valid_until' => today()->addDays(15),
+                'status' => QuotationStatus::Draft,
+                'subtotal' => $this->subtotal ?? 0,
+                'discount_amount' => $this->discount_amount ?? 0,
+                'taxable_amount' => $this->taxable_amount ?? 0,
+                'is_interstate' => (bool) $this->is_interstate,
+                'cgst_amount' => $this->cgst_amount ?? 0,
+                'sgst_amount' => $this->sgst_amount ?? 0,
+                'igst_amount' => $this->igst_amount ?? 0,
+                'total_tax' => $this->total_tax ?? 0,
+                'round_off' => $this->round_off ?? 0,
+                'grand_total' => $this->grand_total ?? 0,
+                'amount_in_words' => $this->amount_in_words,
+                'terms_and_conditions' => $this->terms_and_conditions,
+                'notes' => $this->notes,
+                'created_by_user_id' => $user?->id ?? $this->created_by_user_id,
+            ]);
+            $revision->save();
+
+            // Clone line items
+            foreach ($this->items as $item) {
+                $revision->items()->create([
+                    'product_id' => $item->product_id,
+                    'item_name' => $item->item_name,
+                    'description' => $item->description,
+                    'hsn_sac' => $item->hsn_sac,
+                    'quantity' => $item->quantity,
+                    'unit' => $item->unit,
+                    'unit_rate' => $item->unit_rate,
+                    'discount_percentage' => $item->discount_percentage,
+                    'gst_rate' => $item->gst_rate,
+                    'taxable_value' => $item->taxable_value,
+                    'total_amount' => $item->total_amount,
+                    'sort_order' => $item->sort_order,
+                ]);
+            }
+
+            // Log activities
+            $this->activities()->create([
+                'user_id' => $user?->id,
+                'from_status' => $this->status->value,
+                'to_status' => $this->status->value,
+                'remarks' => "Created revision {$newQuoteNumber}",
+            ]);
+
+            $revision->activities()->create([
+                'user_id' => $user?->id,
+                'from_status' => null,
+                'to_status' => QuotationStatus::Draft->value,
+                'remarks' => "Revision created from {$this->quotation_number}",
+            ]);
+
+            return $revision;
+        });
+    }
+
     public function isLocked(): bool
     {
         return $this->status === QuotationStatus::Accepted;

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\QuotationResource\Pages;
 use App\Filament\Resources\QuotationResource;
 use App\Services\GstCalculationService;
 use Filament\Actions;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 
 class EditQuotation extends EditRecord
@@ -15,6 +16,29 @@ class EditQuotation extends EditRecord
     {
         return [
             Actions\ViewAction::make(),
+            Actions\Action::make('preview_pdf')
+                ->label('Preview PDF')
+                ->icon('heroicon-o-eye')
+                ->color('info')
+                ->url(fn () => route('quotations.pdf.preview', $this->record))
+                ->openUrlInNewTab(),
+            Actions\Action::make('create_revision')
+                ->label('Create Revision')
+                ->icon('heroicon-o-document-duplicate')
+                ->color('warning')
+                ->requiresConfirmation()
+                ->modalHeading('Create Quotation Revision')
+                ->modalDescription('This will create a new draft revision (e.g. /R1, /R2) and mark the current one as superseded.')
+                ->action(function () {
+                    $revision = $this->record->createRevision();
+                    Notification::make()
+                        ->title('Revision Created')
+                        ->body("Created revision {$revision->quotation_number}")
+                        ->success()
+                        ->send();
+
+                    return redirect(QuotationResource::getUrl('edit', ['record' => $revision]));
+                }),
             Actions\DeleteAction::make()
                 ->visible(fn () => $this->record->canBeEdited()),
         ];

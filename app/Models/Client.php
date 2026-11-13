@@ -44,6 +44,11 @@ class Client extends Model
         return $this->hasMany(FollowUp::class, 'client_id');
     }
 
+    public function quotations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Quotation::class, 'client_id');
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);

@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             ClientSeeder::class,
             ProspectSeeder::class,
             FollowUpSeeder::class,
+            QuotationSeeder::class,
         ]);
     }
 }

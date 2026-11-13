@@ -115,12 +115,15 @@ class ClientManagementTest extends TestCase
     {
         $settings = CompanySetting::getSettings();
 
-        $this->assertEquals('Maruti Sales & Services', $settings->company_name);
+        $this->assertEquals('MARUTI SALES & SERVICES', $settings->company_name);
         $this->assertEquals('(A Complete IT Solution)', $settings->tagline);
         $this->assertEquals('Assam', $settings->state);
         $this->assertEquals('18', $settings->state_code);
         $this->assertEquals('Guwahati', $settings->city);
         $this->assertEquals('18ABGFM5224K1Z2', $settings->gstin);
+        $this->assertEquals('ABGFM5224K', $settings->pan);
+        $this->assertEquals('+91 70022 53021', $settings->phone);
+        $this->assertEquals('smarutisales@gmail.com', $settings->email);
         $this->assertEquals('MSS', $settings->quotation_prefix);
         $this->assertEquals('Subject to Guwahati jurisdiction', $settings->jurisdiction_text);
         $this->assertFalse($settings->show_signature_on_pdf);

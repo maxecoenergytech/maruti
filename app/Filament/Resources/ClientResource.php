@@ -196,7 +196,7 @@ class ClientResource extends Resource
     public static function getRelations(): array
     {
         return [
-            // Quotations and FollowUps relation managers will be registered in Phase (b) & (c)
+            ClientResource\RelationManagers\FollowUpsRelationManager::class,
         ];
     }
 

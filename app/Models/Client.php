@@ -39,6 +39,11 @@ class Client extends Model
         return $this->belongsTo(User::class, 'assigned_user_id');
     }
 
+    public function followUps(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(FollowUp::class, 'client_id');
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);

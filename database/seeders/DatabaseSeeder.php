@@ -12,6 +12,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             CompanySettingSeeder::class,
             ClientSeeder::class,
+            ProspectSeeder::class,
+            FollowUpSeeder::class,
         ]);
     }
 }

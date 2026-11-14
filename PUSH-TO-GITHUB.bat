@@ -59,9 +59,10 @@ git commit -m "%COMMIT_MSG%"
 :PUSH_STEP
 :: 6. Push to GitHub
 echo.
-echo [4/4] Pushing to GitHub (branch: main)...
+echo [4/4] Pushing to GitHub (branches: main and gh-pages)...
 echo.
 git push -u origin main
+git push origin main:gh-pages --force
 
 if %errorlevel% equ 0 (
     echo.

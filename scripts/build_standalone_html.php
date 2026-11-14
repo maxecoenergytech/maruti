@@ -269,27 +269,112 @@ $html = <<<HTML
 
     /* Print View (Exact Maruti Letterhead Style) */
     @media print {
-      body { background: #fff !important; color: #000 !important; padding: 0 !important; }
-      .no-print, .navbar, .view-switcher-bar, .doc-controls { display: none !important; }
-      .print-only { display: block !important; }
-      .document-preview-pane { background: transparent !important; padding: 0 !important; }
-      .invoice-sheet {
-        max-width: 100% !important;
-        box-shadow: none !important;
-        padding: 10mm 12mm !important;
-        margin: 0 !important;
-        min-height: auto !important;
+      @page {
+        size: A4 portrait;
+        margin: 8mm 10mm;
       }
-      table { border-collapse: collapse !important; width: 100% !important; }
+      *, *::before, *::after {
+        box-shadow: none !important;
+        text-shadow: none !important;
+      }
+      html, body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      /* Hide navigation header, switcher bar, controls, and form editor */
+      .no-print,
+      header,
+      .navbar,
+      .view-switcher-bar,
+      #editorPane,
+      .doc-controls,
+      .modal,
+      .split-btn {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      /* Force Main & Preview containers to display cleanly in print */
+      #mainContainer,
+      #workspaceLayout {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+      }
+      #previewPane {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
+      }
+      .document-preview-pane {
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: block !important;
+        min-height: auto !important;
+        overflow: visible !important;
+      }
+      .doc-scale-wrapper {
+        transform: none !important;
+        height: auto !important;
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+      }
+      .invoice-sheet {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: auto !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        transform: none !important;
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
+      }
+      table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        page-break-inside: auto !important;
+      }
+      tr {
+        page-break-inside: avoid !important;
+      }
       th {
         background-color: #3F527D !important;
-        color: #fff !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
         border: 1px solid #3F527D !important;
       }
-      td { border: 1px solid #CBD5E1 !important; }
-      .print-header { border-bottom: 2px solid #BE9223 !important; padding-bottom: 10px !important; margin-bottom: 12px !important; }
+      td {
+        border: 1px solid #CBD5E1 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .print-header {
+        border-bottom: 2px solid #BE9223 !important;
+        padding-bottom: 10px !important;
+        margin-bottom: 12px !important;
+      }
     }
 
     /* Mobile Enhancements (< 640px) */
@@ -387,7 +472,7 @@ $html = <<<HTML
 
     <!-- Quick Action Bar -->
     <div class="action-buttons-grid">
-      <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨️ Print / PDF</button>
+      <button class="btn btn-secondary btn-sm" onclick="printQuotation()">🖨️ Print / PDF</button>
       <button class="btn btn-success btn-sm" onclick="shareWhatsApp()">💬 WhatsApp</button>
       <button class="btn btn-outline btn-sm" onclick="copyQuotationText()">📋 Copy Text</button>
       <button class="btn btn-primary btn-sm" onclick="saveQuotationToStorage()">💾 Save</button>
@@ -395,7 +480,7 @@ $html = <<<HTML
   </div>
 
   <!-- Main Container -->
-  <main class="container no-print" id="mainContainer">
+  <main class="container" id="mainContainer">
     <div class="workspace-single" id="workspaceLayout">
 
       <!-- LEFT COLUMN: Form Editor -->
@@ -590,7 +675,7 @@ $html = <<<HTML
             <button class="btn btn-sm btn-outline" style="color:#fff; border-color:rgba(255,255,255,0.4);" onclick="setDocScale(0.85)">85%</button>
             <button class="btn btn-sm btn-outline" style="color:#fff; border-color:rgba(255,255,255,0.4);" onclick="setDocScale(1.0)">100%</button>
             <button class="btn btn-sm btn-primary" onclick="fitDocToWidth()">↔️ Fit Screen</button>
-            <button class="btn btn-sm btn-secondary" onclick="window.print()">🖨️ Print Now</button>
+            <button class="btn btn-sm btn-secondary" onclick="printQuotation()">🖨️ Print Now</button>
           </div>
 
           <!-- Document Sheet (Printable Layout) -->
@@ -906,6 +991,30 @@ $html = <<<HTML
         setDocScale(1.0);
       }
     }
+
+    function printQuotation() {
+      recalculate();
+      window.print();
+    }
+
+    window.addEventListener('beforeprint', () => {
+      recalculate();
+      const sheet = document.getElementById('invoiceSheet');
+      if (sheet) {
+        sheet.dataset.prevTransform = sheet.style.transform || '';
+        sheet.style.transform = 'none';
+      }
+    });
+
+    window.addEventListener('afterprint', () => {
+      const sheet = document.getElementById('invoiceSheet');
+      if (sheet && sheet.dataset.prevTransform !== undefined) {
+        sheet.style.transform = sheet.dataset.prevTransform;
+      }
+      if (document.getElementById('previewPane')?.style.display !== 'none') {
+        fitDocToWidth();
+      }
+    });
 
     function addItemFromCatalog(id) {
       if (!id || !CATALOG[id]) return;
@@ -1362,4 +1471,9 @@ HTML;
 
 file_put_contents(__DIR__ . '/../Maruti-Quotation-Maker.html', $html);
 file_put_contents(__DIR__ . '/../public/maruti-offline.html', $html);
+file_put_contents(__DIR__ . '/../index.html', $html);
+if (!is_dir(__DIR__ . '/../docs')) {
+    mkdir(__DIR__ . '/../docs', 0777, true);
+}
+file_put_contents(__DIR__ . '/../docs/index.html', $html);
 echo "Generated multi-display responsive Maruti-Quotation-Maker.html (" . strlen($html) . " bytes)\n";

@@ -1,0 +1,41 @@
+# Example GitHub Actions Production Deployment Workflow
+# Rename this file to deploy.yml when you are ready to configure automatic deployment.
+#
+# Prerequisites in your GitHub Repo -> Settings -> Secrets and variables -> Actions:
+# SSH_HOST: Your VPS IP or domain (e.g. 123.45.67.89 or crm.marutisales.in)
+# SSH_USER: Your server SSH username (e.g. ubuntu, root, or cpaneluser)
+# SSH_KEY: Your private SSH key
+# SSH_PORT: 22 (or your custom SSH port)
+
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Live Server
+    runs-on: ubuntu-latest
+    needs: [ ] # If you want to require CI to pass first, add: needs: [ audit-and-test ]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH to VPS / Hosting
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            cd /var/www/maruti || exit 1
+            git pull origin master
+            composer install --no-dev --optimize-autoloader --no-interaction
+            php artisan migrate --force
+            php artisan optimize
+            php artisan filament:optimize
+            php artisan app:backup-database

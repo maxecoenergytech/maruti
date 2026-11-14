@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\QuotationStatus;
+use App\Filament\Actions\QuickShareQuotationModal;
 use App\Filament\Resources\QuotationResource\Pages;
 use App\Filament\Resources\QuotationResource\RelationManagers;
 use App\Models\Client;
@@ -11,6 +12,7 @@ use App\Models\Product;
 use App\Models\Quotation;
 use App\Models\User;
 use App\Services\GstCalculationService;
+use App\Services\QuotationShareService;
 use App\Support\IndianCurrencyHelper;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -445,6 +447,28 @@ class QuotationResource extends Resource
                     ->query(fn (Builder $query) => $query->latestRevision()),
             ])
             ->actions([
+                Tables\Actions\Action::make('quick_share')
+                    ->label('Quick Share')
+                    ->icon('heroicon-o-share')
+                    ->color('warning')
+                    ->tooltip('Quick Share via WhatsApp, Email, or Clipboard')
+                    ->modalHeading(fn (Quotation $record) => "Quick Share: {$record->quotation_number}")
+                    ->modalDescription(fn (Quotation $record) => "Share quotation for {$record->client_name} (" . IndianCurrencyHelper::formatRupees($record->grand_total) . ")")
+                    ->modalIcon('heroicon-o-share')
+                    ->modalWidth('lg')
+                    ->mountUsing(function (Forms\ComponentContainer $form, Quotation $record) {
+                        $form->fill([
+                            'channel' => 'whatsapp',
+                            'recipient_phone' => $record->client?->phone,
+                            'recipient_email' => $record->client?->email,
+                            'message_content' => QuotationShareService::generateMessage($record),
+                            'mark_as_sent' => $record->status === QuotationStatus::Draft,
+                        ]);
+                    })
+                    ->form(QuickShareQuotationModal::getFormSchema())
+                    ->modalSubmitActionLabel('Share Now')
+                    ->action(fn (array $data, Quotation $record, $livewire) => QuickShareQuotationModal::executeShare($data, $record, $livewire)),
+
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ViewAction::make(),
                     Tables\Actions\EditAction::make()
@@ -479,33 +503,16 @@ class QuotationResource extends Resource
                             return redirect(QuotationResource::getUrl('edit', ['record' => $revision]));
                         }),
                     Tables\Actions\Action::make('share_whatsapp')
-                        ->label('WhatsApp')
+                        ->label('WhatsApp (1-Click)')
                         ->icon('heroicon-o-chat-bubble-left-right')
                         ->color('success')
-                        ->url(function (Quotation $record) {
-                            $phone = preg_replace('/[^0-9]/', '', $record->client?->phone ?? '');
-                            if (strlen($phone) === 10) {
-                                $phone = '91' . $phone;
-                            }
-                            $contact = $record->client?->contact_person ?: $record->client_name;
-                            $amount = IndianCurrencyHelper::formatRupees($record->grand_total);
-                            $text = rawurlencode("Dear {$contact},\n\nPlease find Quotation {$record->quotation_number} dated {$record->quotation_date->format('d-m-Y')} from Maruti Sales & Services for {$amount}.\nValid until {$record->valid_until->format('d-m-Y')}.\n\nThank you for choosing Maruti Sales & Services (Guwahati).");
-
-                            return "https://wa.me/{$phone}?text={$text}";
-                        })
+                        ->url(fn (Quotation $record) => QuotationShareService::getWhatsAppUrl($record))
                         ->openUrlInNewTab(),
                     Tables\Actions\Action::make('share_email')
-                        ->label('Email')
+                        ->label('Email (1-Click)')
                         ->icon('heroicon-o-envelope')
-                        ->url(function (Quotation $record) {
-                            $email = $record->client?->email ?? '';
-                            $contact = $record->client?->contact_person ?: $record->client_name;
-                            $amount = IndianCurrencyHelper::formatRupees($record->grand_total);
-                            $subject = rawurlencode("Quotation {$record->quotation_number} from Maruti Sales & Services");
-                            $body = rawurlencode("Dear {$contact},\n\nPlease find quotation {$record->quotation_number} dated {$record->quotation_date->format('d-m-Y')} for {$amount}.\n\nValidity: {$record->valid_until->format('d-m-Y')}\n\nWarm regards,\nMaruti Sales & Services\nPaltan Bazar, Guwahati\nPhone: +91 70022 53021");
-
-                            return "mailto:{$email}?subject={$subject}&body={$body}";
-                        })
+                        ->color('gray')
+                        ->url(fn (Quotation $record) => QuotationShareService::getMailtoUrl($record))
                         ->openUrlInNewTab(),
                 ]),
             ])

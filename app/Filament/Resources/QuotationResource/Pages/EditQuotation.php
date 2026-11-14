@@ -2,9 +2,14 @@
 
 namespace App\Filament\Resources\QuotationResource\Pages;
 
+use App\Enums\QuotationStatus;
+use App\Filament\Actions\QuickShareQuotationModal;
 use App\Filament\Resources\QuotationResource;
 use App\Services\GstCalculationService;
+use App\Services\QuotationShareService;
+use App\Support\IndianCurrencyHelper;
 use Filament\Actions;
+use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 
@@ -15,6 +20,27 @@ class EditQuotation extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('quick_share')
+                ->label('Quick Share')
+                ->icon('heroicon-o-share')
+                ->color('warning')
+                ->modalHeading(fn () => "Quick Share: {$this->record->quotation_number}")
+                ->modalDescription(fn () => "Share quotation for {$this->record->client_name} (" . IndianCurrencyHelper::formatRupees($this->record->grand_total) . ")")
+                ->modalIcon('heroicon-o-share')
+                ->modalWidth('lg')
+                ->mountUsing(function (Forms\ComponentContainer $form) {
+                    $form->fill([
+                        'channel' => 'whatsapp',
+                        'recipient_phone' => $this->record->client?->phone,
+                        'recipient_email' => $this->record->client?->email,
+                        'message_content' => QuotationShareService::generateMessage($this->record),
+                        'mark_as_sent' => $this->record->status === QuotationStatus::Draft,
+                    ]);
+                })
+                ->form(QuickShareQuotationModal::getFormSchema())
+                ->modalSubmitActionLabel('Share Now')
+                ->action(fn (array $data, $livewire) => QuickShareQuotationModal::executeShare($data, $this->record, $livewire)),
+
             Actions\ViewAction::make(),
             Actions\Action::make('preview_pdf')
                 ->label('Preview PDF')

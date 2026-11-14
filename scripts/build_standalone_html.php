@@ -361,18 +361,18 @@ $html = <<<HTML
     </div>
 
     <!-- Items Table Print -->
-    <table style="width:100%; margin-bottom:14px; font-size:0.75rem;">
+    <table style="width:100%; margin-bottom:14px; font-size:0.75rem; border-collapse:collapse;">
       <thead>
         <tr>
-          <th style="width:30px; text-align:center;">#</th>
-          <th>Description of Goods / Services</th>
-          <th style="width:60px; text-align:center;">HSN/SAC</th>
-          <th style="width:40px; text-align:center;">Qty</th>
-          <th style="width:40px; text-align:center;">Unit</th>
-          <th style="width:70px; text-align:right;">Rate (₹)</th>
-          <th style="width:45px; text-align:right;">Disc %</th>
-          <th style="width:45px; text-align:right;">GST %</th>
-          <th style="width:85px; text-align:right;">Total (₹)</th>
+          <th style="width:28px; text-align:center;">#</th>
+          <th style="text-align:left;">Description of Goods / Services</th>
+          <th style="width:70px; text-align:center; white-space:nowrap;">HSN/SAC</th>
+          <th style="width:38px; text-align:center; white-space:nowrap;">Qty</th>
+          <th style="width:38px; text-align:center; white-space:nowrap;">Unit</th>
+          <th style="width:95px; text-align:right; white-space:nowrap;">Rate (₹)</th>
+          <th style="width:45px; text-align:center; white-space:nowrap;">Disc %</th>
+          <th style="width:45px; text-align:center; white-space:nowrap;">GST %</th>
+          <th style="width:105px; text-align:right; white-space:nowrap;">Total (₹)</th>
         </tr>
       </thead>
       <tbody id="p_itemsBody">
@@ -380,7 +380,7 @@ $html = <<<HTML
     </table>
 
     <!-- Totals Table -->
-    <div style="display:grid; grid-template-columns:1.2fr 0.8fr; gap:16px; font-size:0.75rem; margin-bottom:16px;">
+    <div style="display:grid; grid-template-columns:1.1fr 0.9fr; gap:16px; font-size:0.75rem; margin-bottom:16px;">
       <div>
         <div style="margin-bottom:8px;">
           <strong>Amount in Words:</strong><br>
@@ -398,18 +398,34 @@ $html = <<<HTML
         </div>
       </div>
       <div>
-        <table style="width:100%; font-size:0.8rem;">
-          <tr><td>Taxable Value:</td><td style="text-align:right; font-weight:600;" id="p_taxable">₹ 0.00</td></tr>
-          <tr id="p_cgstRow"><td>CGST (Central Tax):</td><td style="text-align:right;" id="p_cgst">₹ 0.00</td></tr>
-          <tr id="p_sgstRow"><td>SGST (Assam State Tax):</td><td style="text-align:right;" id="p_sgst">₹ 0.00</td></tr>
-          <tr id="p_igstRow" style="display:none;"><td>IGST (Integrated Tax):</td><td style="text-align:right;" id="p_igst">₹ 0.00</td></tr>
-          <tr><td>Round Off:</td><td style="text-align:right;" id="p_roundOff">₹ 0.00</td></tr>
-          <tr style="background:#F1F5F9; font-size:0.95rem; font-weight:800; color:#3F527D;">
-            <td>Grand Total (₹):</td><td style="text-align:right;" id="p_grandTotal">₹ 0.00</td>
+        <table style="width:100%; font-size:0.8rem; border-collapse:collapse;">
+          <tr>
+            <td style="padding:4px 6px; white-space:nowrap;">Taxable Value:</td>
+            <td style="text-align:right; font-weight:600; white-space:nowrap; padding:4px 6px; font-variant-numeric:tabular-nums;" id="p_taxable">₹ 0.00</td>
+          </tr>
+          <tr id="p_cgstRow">
+            <td style="padding:4px 6px; white-space:nowrap;">CGST (Central Tax):</td>
+            <td style="text-align:right; white-space:nowrap; padding:4px 6px; font-variant-numeric:tabular-nums;" id="p_cgst">₹ 0.00</td>
+          </tr>
+          <tr id="p_sgstRow">
+            <td style="padding:4px 6px; white-space:nowrap;">SGST (Assam State Tax):</td>
+            <td style="text-align:right; white-space:nowrap; padding:4px 6px; font-variant-numeric:tabular-nums;" id="p_sgst">₹ 0.00</td>
+          </tr>
+          <tr id="p_igstRow" style="display:none;">
+            <td style="padding:4px 6px; white-space:nowrap;">IGST (Integrated Tax):</td>
+            <td style="text-align:right; white-space:nowrap; padding:4px 6px; font-variant-numeric:tabular-nums;" id="p_igst">₹ 0.00</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 6px; white-space:nowrap;">Round Off:</td>
+            <td style="text-align:right; white-space:nowrap; padding:4px 6px; font-variant-numeric:tabular-nums;" id="p_roundOff">₹ 0.00</td>
+          </tr>
+          <tr style="background:#F1F5F9; font-size:0.88rem; font-weight:800; color:#3F527D;">
+            <td style="padding:6px 6px; white-space:nowrap;">Grand Total (₹):</td>
+            <td style="text-align:right; white-space:nowrap; padding:6px 6px; font-variant-numeric:tabular-nums; font-size:0.92rem;" id="p_grandTotal">₹ 0.00</td>
           </tr>
         </table>
         
-        <div style="margin-top:40px; text-align:right; font-size:0.75rem;">
+        <div style="margin-top:35px; text-align:right; font-size:0.75rem;">
           <p>For <strong>MARUTI SALES & SERVICES</strong></p>
           <div style="height:45px;"></div>
           <p style="font-weight:700;">Authorized Signatory</p>
@@ -600,7 +616,7 @@ $html = <<<HTML
               <option value="28" \${item.gst == 28 ? 'selected':''}>28%</option>
             </select>
           </td>
-          <td style="text-align:right; font-weight:600; padding-top:14px;">₹ \${formatCurrency(total)}</td>
+          <td style="text-align:right; font-weight:600; white-space:nowrap; padding-top:14px; font-variant-numeric:tabular-nums;">₹&nbsp;\${formatCurrency(total)}</td>
           <td style="text-align:center;"><button class="btn btn-sm btn-danger" onclick="removeItem(\${i})">&times;</button></td>
         `;
         tbody.appendChild(tr);
@@ -695,13 +711,13 @@ $html = <<<HTML
         tr.innerHTML = `
           <td style="text-align:center;">\${i+1}</td>
           <td><strong>\${escapeHtml(item.name)}</strong></td>
-          <td style="text-align:center;">\${item.hsn || '-'}</td>
-          <td style="text-align:center;">\${item.qty}</td>
-          <td style="text-align:center;">\${item.unit}</td>
-          <td style="text-align:right;">₹ \${formatCurrency(item.rate)}</td>
-          <td style="text-align:right;">\${item.discount > 0 ? item.discount + '%' : '-'}</td>
-          <td style="text-align:right;">\${item.gst}%</td>
-          <td style="text-align:right; font-weight:600;">₹ \${formatCurrency(total)}</td>
+          <td style="text-align:center; white-space:nowrap;">\${item.hsn || '—'}</td>
+          <td style="text-align:center; white-space:nowrap;">\${item.qty}</td>
+          <td style="text-align:center; white-space:nowrap;">\${item.unit}</td>
+          <td style="text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums;">₹&nbsp;\${formatCurrency(item.rate)}</td>
+          <td style="text-align:center; white-space:nowrap;">\${item.discount > 0 ? item.discount + '%' : '—'}</td>
+          <td style="text-align:center; white-space:nowrap;">\${item.gst}%</td>
+          <td style="text-align:right; font-weight:700; white-space:nowrap; font-variant-numeric:tabular-nums;">₹&nbsp;\${formatCurrency(total)}</td>
         `;
         pTbody.appendChild(tr);
       });

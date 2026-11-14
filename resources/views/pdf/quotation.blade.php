@@ -132,9 +132,10 @@
         }
 
         .text-center { text-align: center; }
-        .text-right { text-align: right; }
+        .text-right { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
         .text-left { text-align: left; }
         .font-bold { font-weight: bold; }
+        .nowrap { white-space: nowrap; }
 
         /* Summary / Totals */
         .summary-wrapper {

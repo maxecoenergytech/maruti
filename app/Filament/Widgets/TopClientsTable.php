@@ -38,15 +38,7 @@ class TopClientsTable extends BaseWidget
                             $q->where('created_by_user_id', $user->id);
                         }
                     }], 'grand_total')
-                    ->whereHas('quotations', function ($q) use ($range, $user) {
-                        $q->where('status', QuotationStatus::Accepted)
-                            ->where('is_latest_revision', true)
-                            ->whereBetween('accepted_at', [$range['start'], $range['end']]);
-
-                        if (!$user->isAdmin()) {
-                            $q->where('created_by_user_id', $user->id);
-                        }
-                    })
+                    ->having('won_value', '>', 0)
                     ->orderByDesc('won_value')
                     ->limit(5)
             )

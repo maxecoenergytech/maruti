@@ -23,31 +23,37 @@ class CrmOverviewStats extends BaseWidget
         $totalClientsCount = Client::query()->visibleTo($user)->active()->count();
 
         // 2. Open Prospects
-        $openProspects = Prospect::query()->visibleTo($user)->open();
-        $openProspectsCount = (clone $openProspects)->count();
-        $openPipelineValue = (clone $openProspects)->sum('expected_value');
+        $openStats = Prospect::query()
+            ->visibleTo($user)
+            ->open()
+            ->selectRaw('COUNT(*) as count, COALESCE(SUM(expected_value), 0) as total')
+            ->first();
+        $openProspectsCount = (int) ($openStats?->count ?? 0);
+        $openPipelineValue = (float) ($openStats?->total ?? 0);
 
         // 3. Quotations This Month
         $monthStart = today()->startOfMonth();
         $monthEnd = today()->endOfMonth();
 
-        $quotationsThisMonth = Quotation::query()
+        $quoteStats = Quotation::query()
             ->visibleTo($user)
             ->where('is_latest_revision', true)
-            ->whereBetween('quotation_date', [$monthStart, $monthEnd]);
-
-        $quotesCount = (clone $quotationsThisMonth)->count();
-        $quotesTotal = (clone $quotationsThisMonth)->sum('grand_total');
+            ->whereBetween('quotation_date', [$monthStart, $monthEnd])
+            ->selectRaw('COUNT(*) as count, COALESCE(SUM(grand_total), 0) as total')
+            ->first();
+        $quotesCount = (int) ($quoteStats?->count ?? 0);
+        $quotesTotal = (float) ($quoteStats?->total ?? 0);
 
         // 4. Won Value This Month (Accepted by accepted_at)
-        $wonThisMonth = Quotation::query()
+        $wonStats = Quotation::query()
             ->visibleTo($user)
             ->where('status', QuotationStatus::Accepted)
             ->where('is_latest_revision', true)
-            ->whereBetween('accepted_at', [$monthStart, $monthEnd]);
-
-        $wonTotal = (clone $wonThisMonth)->sum('grand_total');
-        $wonCount = (clone $wonThisMonth)->count();
+            ->whereBetween('accepted_at', [$monthStart, $monthEnd])
+            ->selectRaw('COUNT(*) as count, COALESCE(SUM(grand_total), 0) as total')
+            ->first();
+        $wonTotal = (float) ($wonStats?->total ?? 0);
+        $wonCount = (int) ($wonStats?->count ?? 0);
 
         // 5. Follow-ups Due Today & Overdue
         $dueTodayCount = FollowUp::query()->visibleTo($user)->dueToday()->count();

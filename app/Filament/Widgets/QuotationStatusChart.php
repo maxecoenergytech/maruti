@@ -29,16 +29,20 @@ class QuotationStatusChart extends ChartWidget
             QuotationStatus::Expired,
         ];
 
+        $rawCounts = Quotation::query()
+            ->visibleTo($user)
+            ->where('is_latest_revision', true)
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status')
+            ->all();
+
         $labels = [];
         $counts = [];
 
         foreach ($statuses as $status) {
             $labels[] = $status->value;
-            $counts[] = Quotation::query()
-                ->visibleTo($user)
-                ->where('is_latest_revision', true)
-                ->where('status', $status)
-                ->count();
+            $counts[] = (int) ($rawCounts[$status->value] ?? 0);
         }
 
         return [

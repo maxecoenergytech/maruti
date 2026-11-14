@@ -29,15 +29,19 @@ class PipelineByStageWidget extends ChartWidget
             ProspectStage::Lost,
         ];
 
+        $rawTotals = Prospect::query()
+            ->visibleTo($user)
+            ->selectRaw('stage, SUM(expected_value) as aggregate')
+            ->groupBy('stage')
+            ->pluck('aggregate', 'stage')
+            ->all();
+
         $labels = [];
         $values = [];
 
         foreach ($stages as $stage) {
             $labels[] = $stage->value;
-            $values[] = (float) Prospect::query()
-                ->visibleTo($user)
-                ->where('stage', $stage)
-                ->sum('expected_value');
+            $values[] = (float) ($rawTotals[$stage->value] ?? 0);
         }
 
         return [

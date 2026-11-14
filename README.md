@@ -309,9 +309,9 @@ The repository includes a ready-to-run GitHub Actions configuration in `.github/
 
 3. **Pushing to your GitHub Repository**:
    ```bash
-   git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
-   git branch -M master
-   git push -u origin master
+   git remote add origin https://github.com/maxecoenergytech/maruti.git
+   git branch -M main
+   git push -u origin main
    ```
 
 ---

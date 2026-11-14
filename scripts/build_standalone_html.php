@@ -6,6 +6,9 @@ $logoBase64 = file_exists($logoPath) ? base64_encode(file_get_contents($logoPath
 $sigPath = __DIR__ . '/../public/images/maruti-signature.png';
 $sigBase64 = file_exists($sigPath) ? base64_encode(file_get_contents($sigPath)) : '';
 
+$html2pdfPath = __DIR__ . '/../public/js/html2pdf.bundle.min.js';
+$html2pdfBase64 = file_exists($html2pdfPath) ? base64_encode(file_get_contents($html2pdfPath)) : '';
+
 $html = <<<HTML
 <!DOCTYPE html>
 <html lang="en">
@@ -14,6 +17,19 @@ $html = <<<HTML
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   <title>Maruti Sales & Services — Offline Quotation Maker</title>
   <link rel="icon" href="data:image/png;base64,{$logoBase64}">
+  <!-- Client-side PDF Generation Engine (html2pdf.js CDN + Offline Base64 Fallback) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    if (typeof html2pdf === 'undefined' && '{$html2pdfBase64}' !== '') {
+      try {
+        const s = document.createElement('script');
+        s.textContent = atob('{$html2pdfBase64}');
+        document.head.appendChild(s);
+      } catch (e) {
+        console.warn('Offline html2pdf injection error:', e);
+      }
+    }
+  </script>
   <style>
     :root {
       --primary: #BE9223;
@@ -111,6 +127,46 @@ $html = <<<HTML
       background: #FFFFFF;
       color: var(--secondary);
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .action-buttons-grid {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      background: #1E293B;
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      animation: slideInUp 0.3s ease;
+    }
+    .toast.toast-success { background: #15803D !important; }
+    .toast.toast-info { background: #1D4ED8 !important; }
+    .toast.toast-warning { background: #B45309 !important; }
+    @keyframes slideInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     /* Container & Layout */
@@ -473,7 +529,8 @@ $html = <<<HTML
     <!-- Quick Action Bar -->
     <div class="action-buttons-grid">
       <button class="btn btn-secondary btn-sm" onclick="printQuotation()">🖨️ Print / PDF</button>
-      <button class="btn btn-success btn-sm" onclick="shareWhatsApp()">💬 WhatsApp</button>
+      <button class="btn btn-outline btn-sm" onclick="downloadQuotationPdf()">📥 Download PDF</button>
+      <button class="btn btn-success btn-sm" id="btnWhatsApp" onclick="shareWhatsAppWithPdf()">💬 WhatsApp</button>
       <button class="btn btn-outline btn-sm" onclick="copyQuotationText()">📋 Copy Text</button>
       <button class="btn btn-primary btn-sm" onclick="saveQuotationToStorage()">💾 Save</button>
     </div>
@@ -874,6 +931,83 @@ $html = <<<HTML
     </div>
   </div>
 
+  <!-- Save Success Dialog Modal -->
+  <div class="modal" id="saveSuccessModal">
+    <div class="modal-content" style="max-width:500px;">
+      <div class="modal-header" style="background:#16A34A; color:#fff;">
+        <span style="font-weight:700;">✅ Quotation Saved!</span>
+        <span style="cursor:pointer; font-size:1.4rem;" onclick="closeSaveSuccessModal()">&times;</span>
+      </div>
+      <div class="modal-body" style="padding:22px 20px; text-align:center;">
+        <div style="font-size:3rem; margin-bottom:8px;">💾</div>
+        <h3 style="font-size:1.2rem; color:#1E293B; margin-bottom:6px;">Quotation <span id="saveSuccessQuoteNo">MSS/2026-27/0001</span> Saved!</h3>
+        <p style="font-size:0.85rem; color:#64748B; margin-bottom:20px;">
+          Saved to your browser's local database. Would you like to send the official quotation PDF to your customer via WhatsApp now?
+        </p>
+
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <button class="btn btn-success" style="padding:12px; font-size:0.95rem; justify-content:center;" onclick="closeSaveSuccessModal(); shareWhatsAppWithPdf();">
+            💬 Send PDF Directly via WhatsApp
+          </button>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <button class="btn btn-outline" style="justify-content:center;" onclick="closeSaveSuccessModal(); downloadQuotationPdf();">
+              📥 Download PDF
+            </button>
+            <button class="btn btn-secondary" style="justify-content:center;" onclick="closeSaveSuccessModal(); printQuotation();">
+              🖨️ Print / PDF
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:center;">
+        <button class="btn btn-outline" onclick="closeSaveSuccessModal()">Keep Editing</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WhatsApp Desktop Guide Modal -->
+  <div class="modal" id="whatsappGuideModal">
+    <div class="modal-content" style="max-width:540px;">
+      <div class="modal-header" style="background:#25D366; color:#fff;">
+        <span style="font-weight:700;">💬 WhatsApp Quotation PDF Ready</span>
+        <span style="cursor:pointer; font-size:1.4rem;" onclick="closeWhatsAppGuideModal()">&times;</span>
+      </div>
+      <div class="modal-body" style="padding:20px;">
+        <div style="text-align:center; margin-bottom:16px;">
+          <div style="font-size:2.8rem; margin-bottom:6px;">📄 ➡️ 💬</div>
+          <h3 style="font-size:1.15rem; color:#1E293B; margin-bottom:4px;">PDF Downloaded &amp; WhatsApp Opened!</h3>
+          <p style="font-size:0.82rem; color:#64748B;">
+            The official quotation PDF has been downloaded to your computer and WhatsApp Web is now open.
+          </p>
+        </div>
+
+        <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:14px; margin-bottom:16px; font-size:0.84rem; color:#166534;">
+          <div style="font-weight:700; margin-bottom:8px;">🚀 Quick Attachment Instructions:</div>
+          <div style="display:flex; gap:10px; align-items:flex-start; margin-bottom:8px;">
+            <span style="background:#22C55E; color:#fff; border-radius:50%; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; flex-shrink:0;">1</span>
+            <span>Switch to the opened <strong>WhatsApp Web</strong> tab. Your client's chat and summary text are already waiting.</span>
+          </div>
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <span style="background:#22C55E; color:#fff; border-radius:50%; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; flex-shrink:0;">2</span>
+            <span>Click the <strong>📎 (Paperclip)</strong> icon &rarr; select <strong>Document</strong> &rarr; choose <strong id="waGuideFileName">Quotation.pdf</strong> (or simply <strong>drag &amp; drop</strong> the downloaded file from your browser's download bar into the chat)!</span>
+          </div>
+        </div>
+
+        <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:10px 14px; font-size:0.8rem; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:600; color:#334155;">File: <span id="waModalFileName">Quotation.pdf</span></div>
+            <div style="color:#64748B; font-size:0.72rem;">Saved to your default Downloads folder</div>
+          </div>
+          <button class="btn btn-sm btn-outline" onclick="redownloadCurrentPdf()">📥 Re-Download</button>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+        <button class="btn btn-outline" onclick="reopenWhatsAppTab()">💬 Open WhatsApp Web Again</button>
+        <button class="btn btn-success" onclick="closeWhatsAppGuideModal()">✅ Done</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Product Catalog Database
     const CATALOG = {
@@ -1217,18 +1351,227 @@ $html = <<<HTML
       validateGstin("18AAACB1234F1Z9");
     }
 
-    function shareWhatsApp() {
+    // Toast Notification Utility
+    function showToast(message, type = 'info', duration = 3500) {
+      let container = document.getElementById('toastContainer');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container no-print';
+        document.body.appendChild(container);
+      }
+
+      const toast = document.createElement('div');
+      toast.className = `toast toast-\${type}`;
+      toast.innerHTML = `<span>\${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(16px)';
+        setTimeout(() => toast.remove(), 350);
+      }, duration);
+    }
+
+    // PDF Generation Engine using html2pdf
+    async function generateQuotationPdfBlob(filename) {
+      recalculate();
+
+      const sourceSheet = document.getElementById('invoiceSheet');
+      
+      // Clone element into off-screen container for 100% vector scale rendering
+      const clone = sourceSheet.cloneNode(true);
+      clone.id = 'tempPdfRenderSheet';
+      clone.style.transform = 'none';
+      clone.style.width = '794px';
+      clone.style.maxWidth = '794px';
+      clone.style.minHeight = 'auto';
+      clone.style.boxShadow = 'none';
+      clone.style.borderRadius = '0';
+      clone.style.padding = '24px 28px';
+      clone.style.position = 'fixed';
+      clone.style.left = '-9999px';
+      clone.style.top = '0';
+      clone.style.background = '#ffffff';
+      clone.style.zIndex = '-9999';
+      document.body.appendChild(clone);
+
+      const opt = {
+        margin: [6, 8, 6, 8],
+        filename: filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          letterRendering: true,
+          backgroundColor: '#ffffff',
+          windowWidth: 794
+        },
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait'
+        }
+      };
+
+      try {
+        if (typeof html2pdf === 'undefined') {
+          throw new Error('PDF Engine (html2pdf) is not loaded.');
+        }
+        const pdfBlob = await html2pdf().set(opt).from(clone).outputPdf('blob');
+        clone.remove();
+        return pdfBlob;
+      } catch (err) {
+        clone.remove();
+        console.error("PDF generation error:", err);
+        throw err;
+      }
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 2500);
+    }
+
+    async function downloadQuotationPdf() {
+      const quoteNo = (document.getElementById('quoteNumber').value || 'MSS-0001').replace(/[^a-zA-Z0-9_-]/g, '-');
+      const filename = `Quotation_\${quoteNo}.pdf`;
+
+      showToast("⏳ Generating Quotation PDF...", "info", 4000);
+      try {
+        const blob = await generateQuotationPdfBlob(filename);
+        downloadBlob(blob, filename);
+        showToast(`✅ Saved \${filename} to your Downloads!`, "success", 4000);
+      } catch (err) {
+        console.error("Direct PDF download fallback to print:", err);
+        window.print();
+      }
+    }
+
+    // WhatsApp Direct Sharing with PDF Engine
+    window.currentQuotationPdfBlob = null;
+    window.currentQuotationPdfFileName = null;
+    window.currentClientPhone = '';
+    window.currentWhatsAppText = '';
+
+    async function shareWhatsAppWithPdf() {
+      const quoteNo = document.getElementById('quoteNumber').value || 'MSS-0001';
+      const cleanQuoteNo = quoteNo.replace(/[^a-zA-Z0-9_-]/g, '-');
+      const filename = `Quotation_\${cleanQuoteNo}.pdf`;
       const phone = (document.getElementById('clientPhone').value || '').replace(/[^0-9]/g, '');
       const cleanPhone = phone.length === 10 ? '91' + phone : phone;
-      const text = generateQuotationSummaryText();
-      const url = `https://wa.me/\${cleanPhone}?text=\${encodeURIComponent(text)}`;
-      window.open(url, '_blank');
+      const whatsappText = generateQuotationSummaryText();
+
+      const waBtn = document.getElementById('btnWhatsApp');
+      const originalText = waBtn ? waBtn.innerHTML : '💬 WhatsApp';
+      if (waBtn) {
+        waBtn.innerHTML = '⏳ Generating PDF...';
+        waBtn.disabled = true;
+      }
+
+      showToast("⏳ Preparing Quotation PDF for WhatsApp...", "info", 3500);
+
+      try {
+        const pdfBlob = await generateQuotationPdfBlob(filename);
+        const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf', lastModified: Date.now() });
+
+        window.currentQuotationPdfBlob = pdfBlob;
+        window.currentQuotationPdfFileName = filename;
+        window.currentClientPhone = cleanPhone;
+        window.currentWhatsAppText = whatsappText;
+
+        // 1. Mobile Web Share API Level 2 (Sends file directly into WhatsApp on Android / iOS)
+        if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+          try {
+            await navigator.share({
+              title: `Quotation \${quoteNo} - Maruti Sales & Services`,
+              text: whatsappText,
+              files: [pdfFile]
+            });
+            showToast("✅ Quotation PDF sent via WhatsApp!", "success");
+            if (waBtn) { waBtn.innerHTML = originalText; waBtn.disabled = false; }
+            return;
+          } catch (shareErr) {
+            if (shareErr.name === 'AbortError') {
+              if (waBtn) { waBtn.innerHTML = originalText; waBtn.disabled = false; }
+              return;
+            }
+            console.warn("navigator.share failed, continuing to download & web fallback:", shareErr);
+          }
+        }
+
+        // 2. Desktop Fallback:
+        // Automatically save the PDF file to Downloads
+        downloadBlob(pdfBlob, filename);
+
+        // Open WhatsApp Web with client phone and message pre-filled
+        reopenWhatsAppTab();
+
+        // Display user instruction guide modal
+        openWhatsAppGuideModal(filename, cleanPhone);
+
+      } catch (err) {
+        console.error("PDF generation for WhatsApp failed, fallback to summary text:", err);
+        const waUrl = cleanPhone 
+          ? `https://wa.me/\${cleanPhone}?text=\${encodeURIComponent(whatsappText)}`
+          : `https://wa.me/?text=\${encodeURIComponent(whatsappText)}`;
+        window.open(waUrl, '_blank');
+        showToast("Opened WhatsApp with summary. Use 'Print / PDF' to save sheet.", "warning", 5000);
+      } finally {
+        if (waBtn) {
+          waBtn.innerHTML = originalText;
+          waBtn.disabled = false;
+        }
+      }
+    }
+
+    function shareWhatsApp() {
+      shareWhatsAppWithPdf();
+    }
+
+    function openWhatsAppGuideModal(filename, phone) {
+      document.getElementById('waModalFileName').innerText = filename;
+      document.getElementById('waGuideFileName').innerText = filename;
+      document.getElementById('whatsappGuideModal').classList.add('active');
+    }
+
+    function closeWhatsAppGuideModal() {
+      document.getElementById('whatsappGuideModal').classList.remove('active');
+    }
+
+    function redownloadCurrentPdf() {
+      if (window.currentQuotationPdfBlob && window.currentQuotationPdfFileName) {
+        downloadBlob(window.currentQuotationPdfBlob, window.currentQuotationPdfFileName);
+        showToast("📥 PDF re-downloaded to your Downloads folder!", "success");
+      } else {
+        downloadQuotationPdf();
+      }
+    }
+
+    function reopenWhatsAppTab() {
+      const cleanPhone = window.currentClientPhone || (document.getElementById('clientPhone').value || '').replace(/[^0-9]/g, '');
+      const text = window.currentWhatsAppText || generateQuotationSummaryText();
+      const phoneParam = cleanPhone ? (cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone) : '';
+      
+      const waUrl = phoneParam
+        ? `https://web.whatsapp.com/send?phone=\${phoneParam}&text=\${encodeURIComponent(text)}`
+        : `https://web.whatsapp.com/send?text=\${encodeURIComponent(text)}`;
+      
+      window.open(waUrl, '_blank');
     }
 
     function copyQuotationText() {
       const text = generateQuotationSummaryText();
       navigator.clipboard.writeText(text).then(() => {
-        alert("Quotation summary copied to clipboard! You can now paste it into WhatsApp or an email.");
+        showToast("📋 Quotation summary copied to clipboard!", "success");
       });
     }
 
@@ -1284,7 +1627,18 @@ $html = <<<HTML
       }
       localStorage.setItem('maruti_quotes', JSON.stringify(history));
       updateSavedCount();
-      alert("Quotation " + quote.number + " saved successfully to your browser storage!");
+
+      // Show interactive save modal with instant WhatsApp option
+      openSaveSuccessModal(quote.number);
+    }
+
+    function openSaveSuccessModal(quoteNo) {
+      document.getElementById('saveSuccessQuoteNo').innerText = quoteNo;
+      document.getElementById('saveSuccessModal').classList.add('active');
+    }
+
+    function closeSaveSuccessModal() {
+      document.getElementById('saveSuccessModal').classList.remove('active');
     }
 
     function newQuotation() {

@@ -3,6 +3,9 @@
 $logoPath = __DIR__ . '/../public/images/maruti-logo.png';
 $logoBase64 = file_exists($logoPath) ? base64_encode(file_get_contents($logoPath)) : '';
 
+$sigPath = __DIR__ . '/../public/images/maruti-signature.png';
+$sigBase64 = file_exists($sigPath) ? base64_encode(file_get_contents($sigPath)) : '';
+
 $html = <<<HTML
 <!DOCTYPE html>
 <html lang="en">
@@ -425,10 +428,12 @@ $html = <<<HTML
           </tr>
         </table>
         
-        <div style="margin-top:35px; text-align:right; font-size:0.75rem;">
-          <p>For <strong>MARUTI SALES & SERVICES</strong></p>
-          <div style="height:45px;"></div>
-          <p style="font-weight:700;">Authorized Signatory</p>
+        <div style="margin-top:20px; text-align:right; font-size:0.75rem;">
+          <p style="font-size:0.8rem; font-weight:700; color:#3F527D;">For <strong>MARUTI SALES & SERVICES</strong></p>
+          <div style="margin:4px 0 2px 0;">
+            <img src="data:image/png;base64,{$sigBase64}" style="max-height:55px; max-width:130px; object-fit:contain;" alt="Authorized Stamp & Signature">
+          </div>
+          <p style="font-weight:700; border-top:1px solid #374151; display:inline-block; padding-top:2px; min-width:140px;">Authorized Signatory</p>
         </div>
       </div>
     </div>

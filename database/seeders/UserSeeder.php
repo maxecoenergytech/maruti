@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
             ['email' => 'admin@marutisales.in'],
             [
                 'name' => 'Dipankar Das (Admin)',
-                'password' => Hash::make('Admin@123'),
+                'password' => 'Admin@123',
                 'role' => UserRole::Admin,
                 'phone' => '+91 98640 11223',
                 'is_active' => true,
@@ -30,7 +30,7 @@ class UserSeeder extends Seeder
             ['email' => 'rahul@marutisales.in'],
             [
                 'name' => 'Rahul Sharma',
-                'password' => Hash::make('Sales@123'),
+                'password' => 'Sales@123',
                 'role' => UserRole::SalesExecutive,
                 'phone' => '+91 94350 44556',
                 'is_active' => true,
@@ -44,7 +44,7 @@ class UserSeeder extends Seeder
             ['email' => 'priya@marutisales.in'],
             [
                 'name' => 'Priya Kalita',
-                'password' => Hash::make('Sales@123'),
+                'password' => 'Sales@123',
                 'role' => UserRole::SalesExecutive,
                 'phone' => '+91 97060 77889',
                 'is_active' => true,

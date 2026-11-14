@@ -450,13 +450,21 @@
                 <div class="jurisdiction-note">{{ $company->jurisdiction_text ?: 'Subject to Guwahati jurisdiction' }}</div>
             </td>
             <td class="signatory-cell">
-                <div class="font-bold" style="color: #111827; margin-bottom: 35px;">
+                <div class="font-bold" style="color: #111827; margin-bottom: 5px;">
                     For {{ strtoupper($company->company_name) }}
                 </div>
-                @if ($company->show_signature_on_pdf && $company->signature_path)
-                    <div style="margin-bottom: 5px;">
-                        <img src="{{ public_path($company->signature_path) }}" style="max-height: 45px;" alt="Signature">
+                @php
+                    $sigRel = $company->signature_path ?: $company->stamp_path ?: 'images/maruti-signature.png';
+                    $sigCandidate1 = public_path($sigRel);
+                    $sigCandidate2 = public_path('images/' . $sigRel);
+                    $sigPath = file_exists($sigCandidate1) ? $sigCandidate1 : (file_exists($sigCandidate2) ? $sigCandidate2 : null);
+                @endphp
+                @if ($company->show_signature_on_pdf && $sigPath)
+                    <div style="margin: 4px 0 2px 0;">
+                        <img src="{{ $sigPath }}" style="max-height: 55px; max-width: 140px;" alt="Digital Authorized Signature">
                     </div>
+                @else
+                    <div style="height: 45px;"></div>
                 @endif
                 <div class="font-bold" style="border-top: 1px solid #374151; display: inline-block; padding-top: 2px; min-width: 150px;">
                     {{ $company->signatory_title ?: 'Authorized Signatory' }}

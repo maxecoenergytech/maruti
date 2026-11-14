@@ -25,8 +25,26 @@
       --radius: 8px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding-bottom: 60px; min-height: 100vh; }
+    html {
+      overflow-x: hidden;
+      width: 100%;
+      -webkit-text-size-adjust: 100%;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding-bottom: 95px;
+      min-height: 100vh;
+      width: 100%;
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
 
     /* Utilities */
     .no-print { display: block; }
@@ -228,10 +246,37 @@
       box-shadow: 0 0 0 2px rgba(190, 146, 35, 0.2);
     }
 
+    /* Dynamic Coloured Status Badges */
+    .status-badge-wrapper {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 16px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+    .status-badge-draft { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
+    .status-badge-confirmed { background: #DCFCE7; color: #166534; border: 1px solid #86EFAC; }
+    .status-badge-sent { background: #E0E7FF; color: #3730A3; border: 1px solid #A5B4FC; }
+    .status-badge-expired { background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
+
+    .status-select-pill {
+      border: none;
+      background: transparent;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: inherit;
+      outline: none;
+      cursor: pointer;
+      padding: 0;
+    }
+
     /* Table Container with Touch Scroll */
     .table-container {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
+      width: 100%;
+      max-width: 100%;
       border-radius: 0 0 var(--radius) var(--radius);
     }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.82rem; }
@@ -245,6 +290,185 @@
     }
     td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     tr:hover td { background-color: #F8FAFC; }
+
+    .col-mobile-label { display: none; }
+    .item-card-header { display: none; }
+
+    /* Mobile Item Table to Stacked Cards (< 768px) */
+    @media (max-width: 768px) {
+      .table-container {
+        overflow-x: visible;
+        padding: 8px 12px;
+      }
+      #itemsTable, #itemsTable thead, #itemsTable tbody, #itemsTable th, #itemsTable td, #itemsTable tr {
+        display: block;
+        width: 100%;
+      }
+      #itemsTable thead {
+        display: none !important; /* Hide wide table headers on phones */
+      }
+      #itemsTable tbody {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      #itemsTable tr {
+        background: #FFFFFF;
+        border: 1px solid #CBD5E1;
+        border-radius: 10px;
+        padding: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        box-sizing: border-box;
+      }
+      #itemsTable tr:hover td {
+        background: transparent;
+      }
+      #itemsTable td {
+        padding: 0;
+        border: none;
+        width: 100%;
+        display: block;
+      }
+      .col-mobile-label {
+        display: block !important;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #64748B;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 3px;
+      }
+      .item-card-header {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #F1F5F9;
+        padding-bottom: 8px;
+        margin-bottom: 4px;
+      }
+      .item-card-number {
+        background: #3F527D;
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 12px;
+      }
+      .item-card-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .mobile-input-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .mobile-total-card {
+        background: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 6px;
+        padding: 8px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 4px;
+      }
+      .mobile-total-val {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: #1E293B;
+        font-variant-numeric: tabular-nums;
+      }
+      /* Hide desktop-only columns on mobile */
+      #itemsTable td.desktop-cell-num { display: none !important; }
+      #itemsTable td.desktop-cell-total { display: none !important; }
+      #itemsTable td.desktop-cell-remove { display: none !important; }
+    }
+
+    /* Sticky Totals Bar (Bottom Dock) */
+    .sticky-totals-dock {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid #CBD5E1;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+      padding: 10px 20px;
+      z-index: 999;
+      box-sizing: border-box;
+    }
+    .sticky-totals-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .sticky-totals-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .sticky-items-pill {
+      background: #E0E7FF;
+      color: #3730A3;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .sticky-amount-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .sticky-amount-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #64748B;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .sticky-amount-val {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--secondary);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+    }
+    .sticky-totals-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    @media (max-width: 640px) {
+      .sticky-totals-dock {
+        padding: 8px 12px;
+      }
+      .sticky-totals-left {
+        gap: 8px;
+      }
+      .sticky-amount-val {
+        font-size: 1.05rem;
+      }
+      .sticky-totals-actions .btn {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+      }
+    }
+    @media print {
+      .sticky-totals-dock {
+        display: none !important;
+      }
+    }
 
     /* Calculation Totals Summary Box */
     .calc-box {
@@ -528,7 +752,15 @@
           <div class="card">
             <div class="card-header">
               <span>📄 Quotation Reference</span>
-              <span class="badge badge-info" id="statusBadge">Draft</span>
+              <div class="status-badge-wrapper status-badge-draft" id="statusBadgeWrapper">
+                <span style="font-size:0.7rem;">●</span>
+                <select id="quoteStatusSelect" class="status-select-pill" onchange="updateQuoteStatus(this.value)">
+                  <option value="draft">Draft</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="sent">Sent to Client</option>
+                  <option value="expired">Expired</option>
+                </select>
+              </div>
             </div>
             <div class="card-body">
               <div class="grid grid-2">
@@ -734,7 +966,8 @@
                   </div>
                 </div>
                 <div style="text-align:right; min-width:160px;">
-                  <h2 style="font-size:1.4rem; color:#3F527D; font-weight:800; letter-spacing:1px; margin-bottom:4px;">QUOTATION</h2>
+                  <h2 style="font-size:1.4rem; color:#3F527D; font-weight:800; letter-spacing:1px; margin-bottom:2px;">QUOTATION</h2>
+                  <div style="margin-bottom:6px;"><span id="p_statusPill" class="badge status-badge-draft">DRAFT</span></div>
                   <div style="font-size:0.85rem; font-weight:700;" id="p_quoteNo">MSS/2026-27/0001</div>
                   <div style="font-size:0.72rem;">Date: <span id="p_quoteDate"></span></div>
                   <div style="font-size:0.72rem;">Valid Until: <span id="p_validUntil"></span></div>
@@ -840,6 +1073,24 @@
 
     </div>
   </main>
+
+  <!-- Sticky Totals Floating Bar (Mobile & Desktop) -->
+  <div class="sticky-totals-dock no-print" id="stickyTotalsDock">
+    <div class="sticky-totals-container">
+      <div class="sticky-totals-left">
+        <span class="sticky-items-pill"><span id="stickyItemCount">3</span> items</span>
+        <div class="sticky-amount-group">
+          <span class="sticky-amount-label">Grand Total (Incl. GST)</span>
+          <span class="sticky-amount-val" id="stickyGrandTotal">₹ 0.00</span>
+        </div>
+      </div>
+      <div class="sticky-totals-actions">
+        <button class="btn btn-secondary btn-sm" onclick="printQuotation()">🖨️ Print / PDF</button>
+        <button class="btn btn-success btn-sm" onclick="shareWhatsAppWithPdf()">💬 WhatsApp</button>
+        <button class="btn btn-primary btn-sm" onclick="saveQuotationToStorage()">💾 Save</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Firm Settings Modal -->
   <div class="modal" id="settingsModal">
@@ -1177,6 +1428,18 @@
       recalculate();
     }
 
+    function updateQuoteStatus(status) {
+      const wrapper = document.getElementById('statusBadgeWrapper');
+      if (wrapper) {
+        wrapper.className = 'status-badge-wrapper status-badge-' + status;
+      }
+      const pBadge = document.getElementById('p_statusPill');
+      if (pBadge) {
+        pBadge.className = 'badge status-badge-' + status;
+        pBadge.innerText = status.toUpperCase();
+      }
+    }
+
     function renderTable() {
       const tbody = document.getElementById('itemsBody');
       tbody.innerHTML = '';
@@ -1186,15 +1449,59 @@
         const total = taxable + (taxable * (item.gst / 100));
 
         const tr = document.createElement('tr');
+        tr.className = 'item-table-row';
         tr.innerHTML = `
-          <td style="text-align:center;">${i + 1}</td>
-          <td><input type="text" class="form-control" value="${escapeHtml(item.name)}" placeholder="Item description" onchange="updateItem(${i}, 'name', this.value)"></td>
-          <td><input type="text" class="form-control" style="text-align:center;" value="${item.hsn}" placeholder="HSN/SAC" onchange="updateItem(${i}, 'hsn', this.value)"></td>
-          <td><input type="number" class="form-control" style="text-align:center;" value="${item.qty}" min="1" step="any" oninput="updateItem(${i}, 'qty', this.value)"></td>
-          <td><input type="text" class="form-control" style="text-align:center;" value="${item.unit}" onchange="updateItem(${i}, 'unit', this.value)"></td>
-          <td><input type="number" class="form-control" style="text-align:right;" value="${item.rate}" min="0" step="any" oninput="updateItem(${i}, 'rate', this.value)"></td>
-          <td><input type="number" class="form-control" style="text-align:center;" value="${item.discount}" min="0" max="100" oninput="updateItem(${i}, 'discount', this.value)"></td>
-          <td>
+          <!-- Mobile-Only Stacked Card Header -->
+          <div class="item-card-header">
+            <span class="item-card-number">Item #${i + 1}</span>
+            <div class="item-card-actions">
+              <span style="font-size:0.85rem; font-weight:800; color:#3F527D; font-variant-numeric:tabular-nums;">₹ ${formatCurrency(total)}</span>
+              <button class="btn btn-sm btn-danger" onclick="removeItem(${i})" title="Remove item" style="padding:2px 8px; font-size:0.7rem;">&times; Delete</button>
+            </div>
+          </div>
+
+          <!-- Desktop Cell 1: # -->
+          <td class="desktop-cell-num" style="text-align:center;">${i + 1}</td>
+
+          <!-- Description (Full width) -->
+          <td style="min-width:200px;">
+            <span class="col-mobile-label">Description of Goods / Services</span>
+            <input type="text" class="form-control" value="${escapeHtml(item.name)}" placeholder="Item description" onchange="updateItem(${i}, 'name', this.value)">
+          </td>
+
+          <!-- HSN/SAC -->
+          <td style="width:90px;">
+            <span class="col-mobile-label">HSN/SAC</span>
+            <input type="text" class="form-control" style="text-align:center;" value="${item.hsn}" placeholder="HSN/SAC" onchange="updateItem(${i}, 'hsn', this.value)">
+          </td>
+
+          <!-- Qty -->
+          <td style="width:70px;">
+            <span class="col-mobile-label">Quantity</span>
+            <input type="number" class="form-control" style="text-align:center;" value="${item.qty}" min="1" step="any" oninput="updateItem(${i}, 'qty', this.value)">
+          </td>
+
+          <!-- Unit -->
+          <td style="width:70px;">
+            <span class="col-mobile-label">Unit</span>
+            <input type="text" class="form-control" style="text-align:center;" value="${item.unit}" onchange="updateItem(${i}, 'unit', this.value)">
+          </td>
+
+          <!-- Rate -->
+          <td style="width:115px;">
+            <span class="col-mobile-label">Rate (₹)</span>
+            <input type="number" class="form-control" style="text-align:right;" value="${item.rate}" min="0" step="any" oninput="updateItem(${i}, 'rate', this.value)">
+          </td>
+
+          <!-- Discount -->
+          <td style="width:65px;">
+            <span class="col-mobile-label">Discount %</span>
+            <input type="number" class="form-control" style="text-align:center;" value="${item.discount}" min="0" max="100" oninput="updateItem(${i}, 'discount', this.value)">
+          </td>
+
+          <!-- GST -->
+          <td style="width:80px;">
+            <span class="col-mobile-label">GST Rate</span>
             <select class="form-control" style="text-align:center;" onchange="updateItem(${i}, 'gst', this.value)">
               <option value="0" ${item.gst == 0 ? 'selected':''}>0%</option>
               <option value="5" ${item.gst == 5 ? 'selected':''}>5%</option>
@@ -1203,8 +1510,12 @@
               <option value="28" ${item.gst == 28 ? 'selected':''}>28%</option>
             </select>
           </td>
-          <td style="text-align:right; font-weight:700; white-space:nowrap; padding-top:10px; font-variant-numeric:tabular-nums;">₹&nbsp;${formatCurrency(total)}</td>
-          <td style="text-align:center;"><button class="btn btn-sm btn-danger" onclick="removeItem(${i})">&times;</button></td>
+
+          <!-- Desktop Cell 9: Total -->
+          <td class="desktop-cell-total" style="text-align:right; font-weight:700; white-space:nowrap; padding-top:10px; font-variant-numeric:tabular-nums;">₹&nbsp;${formatCurrency(total)}</td>
+
+          <!-- Desktop Cell 10: Remove -->
+          <td class="desktop-cell-remove" style="text-align:center;"><button class="btn btn-sm btn-danger" onclick="removeItem(${i})">&times;</button></td>
         `;
         tbody.appendChild(tr);
       });
@@ -1253,6 +1564,12 @@
       document.getElementById('igstVal').innerText = "₹ " + formatCurrency(igstTotal);
       document.getElementById('roundOffVal').innerText = (roundOff >= 0 ? "+ " : "- ") + "₹ " + formatCurrency(Math.abs(roundOff));
       document.getElementById('grandTotalVal').innerText = "₹ " + formatCurrency(roundedGrand);
+
+      // Sticky totals dock update
+      const stickyGrand = document.getElementById('stickyGrandTotal');
+      if (stickyGrand) stickyGrand.innerText = "₹ " + formatCurrency(roundedGrand);
+      const stickyCount = document.getElementById('stickyItemCount');
+      if (stickyCount) stickyCount.innerText = items.length;
 
       document.getElementById('intraTaxRows').style.display = isInterstate ? 'none' : 'block';
       document.getElementById('interTaxRow').style.display = isInterstate ? 'block' : 'none';
@@ -1647,6 +1964,7 @@
     function saveQuotationToStorage() {
       const quote = {
         number: document.getElementById('quoteNumber').value,
+        status: document.getElementById('quoteStatusSelect')?.value || 'draft',
         date: document.getElementById('quoteDate').value,
         validUntil: document.getElementById('validUntil').value,
         taxType: document.getElementById('taxType').value,
@@ -1697,6 +2015,10 @@
         initDates();
         const rand = Math.floor(1000 + Math.random() * 9000);
         document.getElementById('quoteNumber').value = "MSS/2026-27/" + rand;
+        if (document.getElementById('quoteStatusSelect')) {
+          document.getElementById('quoteStatusSelect').value = 'draft';
+        }
+        updateQuoteStatus('draft');
         renderTable();
       }
     }
@@ -1719,9 +2041,13 @@
             const tax = (it.qty * it.rate) - ((it.qty * it.rate) * ((it.discount || 0) / 100));
             total += tax + (tax * ((it.gst || 0) / 100));
           });
+          const st = q.status || 'draft';
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td><strong>${q.number}</strong></td>
+            <td>
+              <strong>${q.number}</strong>
+              <div style="margin-top:2px;"><span class="badge status-badge-${st}" style="font-size:0.65rem; padding:2px 6px;">${st.toUpperCase()}</span></div>
+            </td>
             <td>${q.date}</td>
             <td>${q.client?.name || 'Walk-in'}</td>
             <td style="text-align:right; font-weight:600; font-variant-numeric:tabular-nums;">₹ ${formatCurrency(Math.round(total))}</td>
@@ -1756,6 +2082,12 @@
       document.getElementById('clientState').value = q.client?.state || 'Assam (18)';
       document.getElementById('clientAddress').value = q.client?.address || '';
       document.getElementById('termsConditions').value = q.terms || '';
+
+      const status = q.status || 'draft';
+      if (document.getElementById('quoteStatusSelect')) {
+        document.getElementById('quoteStatusSelect').value = status;
+      }
+      updateQuoteStatus(status);
 
       items = q.items || [];
       renderTable();

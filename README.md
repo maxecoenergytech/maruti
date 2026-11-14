@@ -286,7 +286,34 @@ php artisan up
 
 ---
 
-## 11. Security & Compliance Highlights
+## 11. GitHub Actions CI/CD & Deployment
+
+The repository includes a ready-to-run GitHub Actions configuration in `.github/workflows/`:
+
+1. **Continuous Integration (`ci.yml`)**:
+   - Triggers automatically on every push or pull request to `master`/`main`.
+   - Spins up an Ubuntu runner with PHP 8.3 and all required extensions.
+   - Installs dependencies with Composer caching.
+   - Executes the 15-category Developer System Audit (`php artisan app:audit-system --detailed`).
+   - Runs the full 53-test PHPUnit test suite.
+   - Ensures zero regressions before merging or deploying.
+
+2. **Automated Production Deployment (`deploy.yml.example`)**:
+   - Easily deploy to your production VPS or cPanel via SSH upon pushing to `master`.
+   - To enable:
+     1. Add repository secrets in GitHub: `SSH_HOST`, `SSH_USER`, `SSH_KEY`, `SSH_PORT`.
+     2. Rename `.github/workflows/deploy.yml.example` to `.github/workflows/deploy.yml`.
+
+3. **Pushing to your GitHub Repository**:
+   ```bash
+   git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+   git branch -M master
+   git push -u origin master
+   ```
+
+---
+
+## 12. Security & Compliance Highlights
 
 - **Authentication & Roles**: Filament v3 guard, bcrypt password hashing (12 rounds).
 - **Brute Force Protection**: Built-in login rate throttling.

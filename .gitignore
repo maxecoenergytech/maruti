@@ -1,21 +1,61 @@
-/.phpunit.cache
-/node_modules
-/public/build
-/public/hot
-/public/storage
-/storage/*.key
-/vendor
+# ============================================================
+# Maruti Sales & Services - GitHub Pages Repository
+# ============================================================
+# This .gitignore keeps only the standalone Quotation Maker
+# web app files tracked. All Laravel CRM backend files are
+# excluded from the remote repository (they stay on your PC).
+# ============================================================
+
+# === LARAVEL CRM BACKEND (Keep local, exclude from GitHub) ===
+/app/
+/bootstrap/
+/config/
+/database/
+/resources/
+/routes/
+/storage/
+/tests/
+/vendor/
+/node_modules/
+artisan
+composer.json
+composer.lock
+package.json
+vite.config.js
+phpunit.xml
+.editorconfig
 .env
+.env.example
 .env.backup
 .env.production
-/database/*.sqlite
-/database/*.sqlite-journal
+.gitattributes
+
+# Local public assets (standalone HTML has embedded optimized assets)
+public/
+
+# Build & dev scripts (local-only tools)
+/scripts/
+START-MARUTI-CRM.bat
+docs/
+
+# CI/CD workflows (not needed for simple GitHub Pages)
+.github/
+
+# IDE & editor
+/.fleet/
+/.idea/
+/.vscode/
+
+# PHP & Node caches
+/.phpunit.cache
 .phpunit.result.cache
 Homestead.json
 Homestead.yaml
 auth.json
 npm-debug.log
 yarn-error.log
-/.fleet
-/.idea
-/.vscode
+/public/build
+/public/hot
+/storage/*.key
+/database/*.sqlite
+/database/*.sqlite-journal

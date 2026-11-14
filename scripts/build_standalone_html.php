@@ -1,13 +1,14 @@
 <?php
 
-$logoPath = __DIR__ . '/../public/images/maruti-logo.png';
-$logoBase64 = file_exists($logoPath) ? base64_encode(file_get_contents($logoPath)) : '';
+$logoPath = file_exists(__DIR__ . '/../public/images/maruti-logo-opt.png') 
+    ? __DIR__ . '/../public/images/maruti-logo-opt.png' 
+    : __DIR__ . '/../public/images/maruti-logo.png';
+$logoBase64 = base64_encode(file_get_contents($logoPath));
 
-$sigPath = __DIR__ . '/../public/images/maruti-signature.png';
-$sigBase64 = file_exists($sigPath) ? base64_encode(file_get_contents($sigPath)) : '';
-
-$html2pdfPath = __DIR__ . '/../public/js/html2pdf.bundle.min.js';
-$html2pdfBase64 = file_exists($html2pdfPath) ? base64_encode(file_get_contents($html2pdfPath)) : '';
+$sigPath = file_exists(__DIR__ . '/../public/images/maruti-signature-opt.png')
+    ? __DIR__ . '/../public/images/maruti-signature-opt.png'
+    : __DIR__ . '/../public/images/maruti-signature.png';
+$sigBase64 = base64_encode(file_get_contents($sigPath));
 
 $html = <<<HTML
 <!DOCTYPE html>
@@ -17,19 +18,10 @@ $html = <<<HTML
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   <title>Maruti Sales & Services — Offline Quotation Maker</title>
   <link rel="icon" href="data:image/png;base64,{$logoBase64}">
-  <!-- Client-side PDF Generation Engine (html2pdf.js CDN + Offline Base64 Fallback) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script>
-    if (typeof html2pdf === 'undefined' && '{$html2pdfBase64}' !== '') {
-      try {
-        const s = document.createElement('script');
-        s.textContent = atob('{$html2pdfBase64}');
-        document.head.appendChild(s);
-      } catch (e) {
-        console.warn('Offline html2pdf injection error:', e);
-      }
-    }
-  </script>
+  <!-- High Performance Preconnect & Deferred PDF Generation Engine -->
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root {
       --primary: #BE9223;
@@ -1047,6 +1039,11 @@ $html = <<<HTML
       // Handle screen resizing
       window.addEventListener('resize', autoAdjustViewOnResize);
       autoAdjustViewOnResize();
+
+      // Silently pre-warm PDF engine in background after initial paint
+      setTimeout(() => {
+        ensurePdfEngine().catch(() => {});
+      }, 1500);
     });
 
     function initDates() {
@@ -1373,9 +1370,70 @@ $html = <<<HTML
       }, duration);
     }
 
+    // High-performance asynchronous PDF Engine loader with multi-tier fallback
+    let isPdfEngineLoaded = false;
+    async function ensurePdfEngine() {
+      if (typeof html2pdf !== 'undefined') {
+        isPdfEngineLoaded = true;
+        return true;
+      }
+
+      // Tier 1: Cloudflare CDN
+      try {
+        await loadScriptPromise('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
+        if (typeof html2pdf !== 'undefined') {
+          isPdfEngineLoaded = true;
+          return true;
+        }
+      } catch (e) {
+        console.warn('CDN html2pdf unavailable, trying local fallback...', e);
+      }
+
+      // Tier 2: Local relative path fallback
+      try {
+        await loadScriptPromise('public/js/html2pdf.bundle.min.js');
+        if (typeof html2pdf !== 'undefined') {
+          isPdfEngineLoaded = true;
+          return true;
+        }
+      } catch (e) {
+        console.warn('Local html2pdf unavailable:', e);
+      }
+
+      throw new Error('PDF Engine (html2pdf) could not be loaded.');
+    }
+
+    function loadScriptPromise(src) {
+      return new Promise((resolve, reject) => {
+        const existing = document.querySelector(`script[src="\${src}"]`);
+        if (existing) {
+          let count = 0;
+          const poll = setInterval(() => {
+            if (typeof html2pdf !== 'undefined') {
+              clearInterval(poll);
+              resolve();
+            } else if (++count > 40) {
+              clearInterval(poll);
+              reject(new Error('Timeout loading ' + src));
+            }
+          }, 100);
+          return;
+        }
+        const s = document.createElement('script');
+        s.src = src;
+        s.async = true;
+        s.onload = () => resolve();
+        s.onerror = (err) => reject(err);
+        document.head.appendChild(s);
+      });
+    }
+
     // PDF Generation Engine using html2pdf
     async function generateQuotationPdfBlob(filename) {
       recalculate();
+
+      // Ensure PDF engine is ready
+      await ensurePdfEngine();
 
       const sourceSheet = document.getElementById('invoiceSheet');
       

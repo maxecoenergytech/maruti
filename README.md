@@ -2,6 +2,9 @@
 **Built by Maxeco Energy for Maruti Sales & Services, Guwahati, Assam.**
 *(A Complete IT Solution &mdash; Computer Hardware, CCTV & Security, Networking, Software & AMC)*
 
+🌐 **Live Remote Web App**: [https://maxecoenergytech.github.io/maruti/](https://maxecoenergytech.github.io/maruti/)  
+*(Instant quotation generator with official letterhead, Indian GST calculation, and digital signature &mdash; zero installation required, runs on any phone, tablet, or PC).*
+
 ---
 
 ## 1. System Overview

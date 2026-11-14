@@ -95,7 +95,7 @@ class TargetResource extends Resource
                             ->placeholder('Special focus areas, strategic objectives, etc.')
                             ->columnSpanFull(),
                     ])
-                    ->columns(2),
+                    ->columns(['default' => 1, 'md' => 2]),
             ]);
     }
 

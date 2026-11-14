@@ -72,7 +72,7 @@ class ProspectResource extends Resource
                             ->dehydrated()
                             ->searchable()
                             ->required(),
-                    ])->columns(2),
+                    ])->columns(['default' => 1, 'md' => 2]),
 
                 Forms\Components\Section::make('Requirements & Deal Stage')
                     ->schema([
@@ -105,7 +105,7 @@ class ProspectResource extends Resource
                             ->columnSpanFull()
                             ->visible(fn (Get $get) => $get('stage') === ProspectStage::Lost->value || $get('stage') === 'Lost')
                             ->required(fn (Get $get) => $get('stage') === ProspectStage::Lost->value || $get('stage') === 'Lost'),
-                    ])->columns(2),
+                    ])->columns(['default' => 1, 'md' => 2]),
             ]);
     }
 

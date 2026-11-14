@@ -17,7 +17,7 @@ class TopClientsTable extends BaseWidget
 
     protected static ?int $sort = 5;
 
-    protected int | string | array $columnSpan = 'half';
+    protected int | string | array $columnSpan = ['default' => 'full', 'md' => 1];
 
     public function table(Table $table): Table
     {

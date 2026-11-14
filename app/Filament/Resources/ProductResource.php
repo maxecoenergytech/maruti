@@ -81,7 +81,7 @@ class ProductResource extends Resource
                             ->label('Active in Catalog')
                             ->default(true)
                             ->required(),
-                    ])->columns(2),
+                    ])->columns(['default' => 1, 'md' => 2]),
             ]);
     }
 

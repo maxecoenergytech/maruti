@@ -12,6 +12,8 @@ class QuotationStatusChart extends ChartWidget
 
     protected static ?int $sort = 3;
 
+    protected int | string | array $columnSpan = ['default' => 'full', 'md' => 1];
+
     protected static ?string $maxHeight = '280px';
 
     protected function getData(): array

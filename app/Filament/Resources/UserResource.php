@@ -59,7 +59,7 @@ class UserResource extends Resource
                             ->label('Active Account')
                             ->default(true)
                             ->required(),
-                    ])->columns(2),
+                    ])->columns(['default' => 1, 'md' => 2]),
             ]);
     }
 

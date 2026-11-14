@@ -56,7 +56,7 @@ class FollowUpResource extends Resource
                             ->options(FollowUpStatus::class)
                             ->default(FollowUpStatus::Pending)
                             ->required(),
-                    ])->columns(2),
+                    ])->columns(['default' => 1, 'md' => 2]),
 
                 Forms\Components\Section::make('Linked Entity')
                     ->description('Link this follow-up to a Prospect or Client (at least one is required).')
@@ -71,7 +71,7 @@ class FollowUpResource extends Resource
                             ->options(fn () => Client::query()->visibleTo(auth()->user())->pluck('company_name', 'id'))
                             ->searchable()
                             ->nullable(),
-                    ])->columns(2),
+                    ])->columns(['default' => 1, 'md' => 2]),
 
                 Forms\Components\Section::make('Schedule & Outcome')
                     ->schema([
@@ -89,7 +89,7 @@ class FollowUpResource extends Resource
                             ->placeholder('Notes on customer reaction, feedback, or next steps...')
                             ->rows(3)
                             ->columnSpanFull(),
-                    ])->columns(2),
+                    ])->columns(['default' => 1, 'md' => 2]),
             ]);
     }
 

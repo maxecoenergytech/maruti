@@ -106,7 +106,7 @@ class QuotationResource extends Resource
                             ->disabled(fn () => !auth()->user()?->isAdmin() || (bool) request()->route('record'))
                             ->dehydrated()
                             ->required(),
-                    ])->columns(3),
+                    ])->columns(['default' => 1, 'sm' => 2, 'lg' => 3]),
 
                 Forms\Components\Section::make('Client Snapshot (Captured at creation)')
                     ->collapsible()
@@ -135,7 +135,7 @@ class QuotationResource extends Resource
                         Forms\Components\Textarea::make('shipping_address')
                             ->label('Shipping Address')
                             ->columnSpanFull(),
-                    ])->columns(4),
+                    ])->columns(['default' => 1, 'sm' => 2, 'lg' => 4]),
 
                 Forms\Components\Section::make('Line Items')
                     ->description('Pick catalog products or enter custom items. Rates and taxes calculate automatically.')
@@ -175,16 +175,16 @@ class QuotationResource extends Resource
                                             $set('total_amount', $total);
                                         }
                                     })
-                                    ->columnSpan(4),
+                                    ->columnSpan(['default' => 12, 'md' => 6, 'lg' => 4]),
 
                                 Forms\Components\TextInput::make('item_name')
                                     ->label('Item Name / Model')
                                     ->required()
-                                    ->columnSpan(4),
+                                    ->columnSpan(['default' => 12, 'md' => 6, 'lg' => 4]),
 
                                 Forms\Components\TextInput::make('hsn_sac')
                                     ->label('HSN/SAC')
-                                    ->columnSpan(2),
+                                    ->columnSpan(['default' => 6, 'sm' => 4, 'lg' => 2]),
 
                                 Forms\Components\TextInput::make('quantity')
                                     ->label('Qty')
@@ -193,13 +193,13 @@ class QuotationResource extends Resource
                                     ->required()
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(fn (Get $get, Set $set) => self::recalculateLine($get, $set))
-                                    ->columnSpan(2),
+                                    ->columnSpan(['default' => 6, 'sm' => 4, 'lg' => 2]),
 
                                 Forms\Components\TextInput::make('unit')
                                     ->label('Unit')
                                     ->default('Pcs')
                                     ->required()
-                                    ->columnSpan(2),
+                                    ->columnSpan(['default' => 6, 'sm' => 4, 'lg' => 2]),
 
                                 Forms\Components\TextInput::make('unit_rate')
                                     ->label('Rate (₹)')
@@ -208,7 +208,7 @@ class QuotationResource extends Resource
                                     ->required()
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(fn (Get $get, Set $set) => self::recalculateLine($get, $set))
-                                    ->columnSpan(3),
+                                    ->columnSpan(['default' => 6, 'sm' => 4, 'lg' => 3]),
 
                                 Forms\Components\TextInput::make('discount_percent')
                                     ->label('Disc %')
@@ -217,7 +217,7 @@ class QuotationResource extends Resource
                                     ->suffix('%')
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(fn (Get $get, Set $set) => self::recalculateLine($get, $set))
-                                    ->columnSpan(2),
+                                    ->columnSpan(['default' => 6, 'sm' => 4, 'lg' => 2]),
 
                                 Forms\Components\Select::make('gst_rate')
                                     ->label('GST %')
@@ -232,21 +232,21 @@ class QuotationResource extends Resource
                                     ->required()
                                     ->live()
                                     ->afterStateUpdated(fn (Get $get, Set $set) => self::recalculateLine($get, $set))
-                                    ->columnSpan(2),
+                                    ->columnSpan(['default' => 6, 'sm' => 4, 'lg' => 2]),
 
                                 Forms\Components\TextInput::make('taxable_value')
                                     ->label('Taxable (₹)')
                                     ->disabled()
                                     ->dehydrated()
                                     ->prefix('₹')
-                                    ->columnSpan(3),
+                                    ->columnSpan(['default' => 6, 'sm' => 4, 'lg' => 3]),
 
                                 Forms\Components\TextInput::make('total_amount')
                                     ->label('Total (₹)')
                                     ->disabled()
                                     ->dehydrated()
                                     ->prefix('₹')
-                                    ->columnSpan(3),
+                                    ->columnSpan(['default' => 6, 'sm' => 4, 'lg' => 3]),
 
                                 Forms\Components\Textarea::make('description')
                                     ->label('Item Description / Specifications')
@@ -321,7 +321,7 @@ class QuotationResource extends Resource
                             ->disabled()
                             ->dehydrated()
                             ->columnSpanFull(),
-                    ])->columns(3),
+                    ])->columns(['default' => 1, 'sm' => 2, 'lg' => 3]),
 
                 Forms\Components\Section::make('Terms & Notes')
                     ->schema([

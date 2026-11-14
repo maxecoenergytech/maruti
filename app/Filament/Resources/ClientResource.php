@@ -82,7 +82,7 @@ class ClientResource extends Resource
                             ->dehydrated()
                             ->searchable()
                             ->nullable(),
-                    ])->columns(2),
+                    ])->columns(['default' => 1, 'md' => 2]),
 
                 Forms\Components\Section::make('Tax & Address Details')
                     ->schema([
@@ -116,7 +116,7 @@ class ClientResource extends Resource
                             ->label('Active Client')
                             ->default(true)
                             ->required(),
-                    ])->columns(2),
+                    ])->columns(['default' => 1, 'md' => 2]),
             ]);
     }
 

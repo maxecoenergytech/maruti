@@ -81,7 +81,7 @@ class ManageCompanySettings extends Page implements HasForms
                                     ->imagePreviewHeight('90')
                                     ->helperText('Upload or replace logo used on letterhead and Quotation PDFs (defaults to maruti-logo.png).')
                                     ->columnSpanFull(),
-                            ])->columns(2),
+                            ])->columns(['default' => 1, 'md' => 2]),
 
                         Forms\Components\Tabs\Tab::make('GST & Location')
                             ->icon('heroicon-o-map-pin')
@@ -114,7 +114,7 @@ class ManageCompanySettings extends Page implements HasForms
                                 Forms\Components\TextInput::make('address_line2')
                                     ->label('Address Line 2')
                                     ->columnSpanFull(),
-                            ])->columns(2),
+                            ])->columns(['default' => 1, 'md' => 2]),
 
                         Forms\Components\Tabs\Tab::make('Bank Details')
                             ->icon('heroicon-o-credit-card')
@@ -134,7 +134,7 @@ class ManageCompanySettings extends Page implements HasForms
                                 Forms\Components\TextInput::make('bank_branch')
                                     ->label('Branch Name')
                                     ->maxLength(255),
-                            ])->columns(2),
+                            ])->columns(['default' => 1, 'md' => 2]),
 
                         Forms\Components\Tabs\Tab::make('PDF & Print Layout')
                             ->icon('heroicon-o-document-text')
@@ -157,7 +157,7 @@ class ManageCompanySettings extends Page implements HasForms
                                     ->label('Default Terms & Conditions')
                                     ->rows(6)
                                     ->columnSpanFull(),
-                            ])->columns(2),
+                            ])->columns(['default' => 1, 'md' => 2]),
                     ])
                     ->columnSpanFull(),
             ])

@@ -872,14 +872,12 @@
                 <thead>
                   <tr>
                     <th style="width:36px; text-align:center;">#</th>
-                    <th style="min-width:220px;">Item Description</th>
-                    <th style="width:90px; text-align:center;">HSN/SAC</th>
-                    <th style="width:70px; text-align:center;">Qty</th>
-                    <th style="width:70px; text-align:center;">Unit</th>
-                    <th style="width:115px; text-align:right;">Rate (₹)</th>
-                    <th style="width:70px; text-align:center;">Disc %</th>
-                    <th style="width:75px; text-align:center;">GST %</th>
-                    <th style="width:125px; text-align:right;">Total (₹)</th>
+                    <th style="min-width:240px;">Item Description</th>
+                    <th style="width:75px; text-align:center;">Qty</th>
+                    <th style="width:75px; text-align:center;">Unit</th>
+                    <th style="width:125px; text-align:right;">Rate (₹)</th>
+                    <th style="width:85px; text-align:center;">GST %</th>
+                    <th style="width:130px; text-align:right;">Total (₹)</th>
                     <th style="width:40px; text-align:center;">Del</th>
                   </tr>
                 </thead>
@@ -911,9 +909,7 @@
             <div style="font-weight:700; color:var(--secondary); font-size:0.95rem; margin-bottom:10px; border-bottom:1px solid #FDE68A; padding-bottom:6px;">
               Live Tax Breakdown & Totals
             </div>
-            <div class="calc-row"><span>Gross Subtotal:</span><span id="subtotalVal">₹ 0.00</span></div>
-            <div class="calc-row"><span>Total Discount:</span><span id="discountVal" style="color:var(--danger);">- ₹ 0.00</span></div>
-            <div class="calc-row" style="font-weight:600;"><span>Taxable Value:</span><span id="taxableVal">₹ 0.00</span></div>
+            <div class="calc-row" style="font-weight:600;"><span>Taxable Subtotal:</span><span id="taxableVal">₹ 0.00</span></div>
             
             <div id="intraTaxRows">
               <div class="calc-row"><span>CGST (Central Tax):</span><span id="cgstVal">₹ 0.00</span></div>
@@ -993,15 +989,13 @@
               <table style="width:100%; margin-bottom:12px; font-size:0.74rem; border-collapse:collapse;">
                 <thead>
                   <tr>
-                    <th style="width:28px; text-align:center;">#</th>
+                    <th style="width:30px; text-align:center;">#</th>
                     <th style="text-align:left;">Description of Goods / Services</th>
-                    <th style="width:70px; text-align:center; white-space:nowrap;">HSN/SAC</th>
-                    <th style="width:38px; text-align:center; white-space:nowrap;">Qty</th>
-                    <th style="width:38px; text-align:center; white-space:nowrap;">Unit</th>
-                    <th style="width:95px; text-align:right; white-space:nowrap;">Rate (₹)</th>
-                    <th style="width:45px; text-align:center; white-space:nowrap;">Disc %</th>
-                    <th style="width:45px; text-align:center; white-space:nowrap;">GST %</th>
-                    <th style="width:105px; text-align:right; white-space:nowrap;">Total (₹)</th>
+                    <th style="width:45px; text-align:center; white-space:nowrap;">Qty</th>
+                    <th style="width:45px; text-align:center; white-space:nowrap;">Unit</th>
+                    <th style="width:110px; text-align:right; white-space:nowrap;">Rate (₹)</th>
+                    <th style="width:55px; text-align:center; white-space:nowrap;">GST %</th>
+                    <th style="width:120px; text-align:right; white-space:nowrap;">Total (₹)</th>
                   </tr>
                 </thead>
                 <tbody id="p_itemsBody">
@@ -1390,11 +1384,9 @@
       const cat = CATALOG[id];
       items.push({
         name: cat.name,
-        hsn: cat.hsn,
         qty: 1,
         unit: cat.unit,
         rate: cat.rate,
-        discount: 0,
         gst: cat.gst
       });
       document.getElementById('catalogPicker').value = "";
@@ -1404,11 +1396,9 @@
     function addNewBlankRow() {
       items.push({
         name: "",
-        hsn: "",
         qty: 1,
         unit: "Pcs",
         rate: 0,
-        discount: 0,
         gst: 18
       });
       renderTable();
@@ -1420,7 +1410,7 @@
     }
 
     function updateItem(index, field, value) {
-      if (['qty', 'rate', 'discount', 'gst'].includes(field)) {
+      if (['qty', 'rate', 'gst'].includes(field)) {
         items[index][field] = parseFloat(value) || 0;
       } else {
         items[index][field] = value;
@@ -1445,8 +1435,8 @@
       tbody.innerHTML = '';
 
       items.forEach((item, i) => {
-        const taxable = (item.qty * item.rate) - ((item.qty * item.rate) * (item.discount / 100));
-        const total = taxable + (taxable * (item.gst / 100));
+        const taxable = (item.qty || 0) * (item.rate || 0);
+        const total = taxable + (taxable * ((item.gst || 0) / 100));
 
         const tr = document.createElement('tr');
         tr.className = 'item-table-row';
@@ -1464,43 +1454,31 @@
           <td class="desktop-cell-num" style="text-align:center;">${i + 1}</td>
 
           <!-- Description (Full width) -->
-          <td style="min-width:200px;">
+          <td style="min-width:220px;">
             <span class="col-mobile-label">Description of Goods / Services</span>
             <input type="text" class="form-control" value="${escapeHtml(item.name)}" placeholder="Item description" onchange="updateItem(${i}, 'name', this.value)">
           </td>
 
-          <!-- HSN/SAC -->
-          <td style="width:90px;">
-            <span class="col-mobile-label">HSN/SAC</span>
-            <input type="text" class="form-control" style="text-align:center;" value="${item.hsn}" placeholder="HSN/SAC" onchange="updateItem(${i}, 'hsn', this.value)">
-          </td>
-
           <!-- Qty -->
-          <td style="width:70px;">
+          <td style="width:75px;">
             <span class="col-mobile-label">Quantity</span>
             <input type="number" class="form-control" style="text-align:center;" value="${item.qty}" min="1" step="any" oninput="updateItem(${i}, 'qty', this.value)">
           </td>
 
           <!-- Unit -->
-          <td style="width:70px;">
+          <td style="width:75px;">
             <span class="col-mobile-label">Unit</span>
-            <input type="text" class="form-control" style="text-align:center;" value="${item.unit}" onchange="updateItem(${i}, 'unit', this.value)">
+            <input type="text" class="form-control" style="text-align:center;" value="${item.unit || 'Pcs'}" onchange="updateItem(${i}, 'unit', this.value)">
           </td>
 
           <!-- Rate -->
-          <td style="width:115px;">
+          <td style="width:125px;">
             <span class="col-mobile-label">Rate (₹)</span>
             <input type="number" class="form-control" style="text-align:right;" value="${item.rate}" min="0" step="any" oninput="updateItem(${i}, 'rate', this.value)">
           </td>
 
-          <!-- Discount -->
-          <td style="width:65px;">
-            <span class="col-mobile-label">Discount %</span>
-            <input type="number" class="form-control" style="text-align:center;" value="${item.discount}" min="0" max="100" oninput="updateItem(${i}, 'discount', this.value)">
-          </td>
-
           <!-- GST -->
-          <td style="width:80px;">
+          <td style="width:85px;">
             <span class="col-mobile-label">GST Rate</span>
             <select class="form-control" style="text-align:center;" onchange="updateItem(${i}, 'gst', this.value)">
               <option value="0" ${item.gst == 0 ? 'selected':''}>0%</option>
@@ -1511,10 +1489,10 @@
             </select>
           </td>
 
-          <!-- Desktop Cell 9: Total -->
+          <!-- Desktop Cell Total -->
           <td class="desktop-cell-total" style="text-align:right; font-weight:700; white-space:nowrap; padding-top:10px; font-variant-numeric:tabular-nums;">₹&nbsp;${formatCurrency(total)}</td>
 
-          <!-- Desktop Cell 10: Remove -->
+          <!-- Desktop Cell Remove -->
           <td class="desktop-cell-remove" style="text-align:center;"><button class="btn btn-sm btn-danger" onclick="removeItem(${i})">&times;</button></td>
         `;
         tbody.appendChild(tr);
@@ -1524,8 +1502,6 @@
     }
 
     function recalculate() {
-      let subtotal = 0;
-      let totalDiscount = 0;
       let taxableTotal = 0;
       let cgstTotal = 0;
       let sgstTotal = 0;
@@ -1534,12 +1510,7 @@
       const isInterstate = document.getElementById('taxType').value === 'inter';
 
       items.forEach(item => {
-        const lineGross = (item.qty || 0) * (item.rate || 0);
-        const lineDisc = lineGross * ((item.discount || 0) / 100);
-        const lineTaxable = lineGross - lineDisc;
-
-        subtotal += lineGross;
-        totalDiscount += lineDisc;
+        const lineTaxable = (item.qty || 0) * (item.rate || 0);
         taxableTotal += lineTaxable;
 
         if (isInterstate) {
@@ -1556,8 +1527,6 @@
       const roundOff = roundedGrand - exactGrand;
 
       // Update Form Displays
-      document.getElementById('subtotalVal').innerText = "₹ " + formatCurrency(subtotal);
-      document.getElementById('discountVal').innerText = "- ₹ " + formatCurrency(totalDiscount);
       document.getElementById('taxableVal').innerText = "₹ " + formatCurrency(taxableTotal);
       document.getElementById('cgstVal').innerText = "₹ " + formatCurrency(cgstTotal);
       document.getElementById('sgstVal').innerText = "₹ " + formatCurrency(sgstTotal);
@@ -1578,10 +1547,10 @@
       document.getElementById('amountWordsVal').innerText = "Amount in words: " + words;
 
       // Sync Live Document Sheet
-      syncPrintLayout(subtotal, totalDiscount, taxableTotal, cgstTotal, sgstTotal, igstTotal, roundOff, roundedGrand, words, isInterstate);
+      syncPrintLayout(taxableTotal, cgstTotal, sgstTotal, igstTotal, roundOff, roundedGrand, words, isInterstate);
     }
 
-    function syncPrintLayout(subtotal, discount, taxable, cgst, sgst, igst, roundOff, grand, words, isInterstate) {
+    function syncPrintLayout(taxable, cgst, sgst, igst, roundOff, grand, words, isInterstate) {
       document.getElementById('p_quoteNo').innerText = document.getElementById('quoteNumber').value;
       document.getElementById('p_quoteDate').innerText = formatDate(document.getElementById('quoteDate').value);
       document.getElementById('p_validUntil').innerText = formatDate(document.getElementById('validUntil').value);
@@ -1609,17 +1578,15 @@
       const pTbody = document.getElementById('p_itemsBody');
       pTbody.innerHTML = '';
       items.forEach((item, i) => {
-        const taxable = (item.qty * item.rate) - ((item.qty * item.rate) * (item.discount / 100));
-        const total = taxable + (taxable * (item.gst / 100));
+        const taxable = (item.qty || 0) * (item.rate || 0);
+        const total = taxable + (taxable * ((item.gst || 0) / 100));
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td style="text-align:center;">${i+1}</td>
           <td><strong>${escapeHtml(item.name)}</strong></td>
-          <td style="text-align:center; white-space:nowrap;">${item.hsn || '—'}</td>
           <td style="text-align:center; white-space:nowrap;">${item.qty}</td>
-          <td style="text-align:center; white-space:nowrap;">${item.unit}</td>
+          <td style="text-align:center; white-space:nowrap;">${item.unit || 'Pcs'}</td>
           <td style="text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums;">₹&nbsp;${formatCurrency(item.rate)}</td>
-          <td style="text-align:center; white-space:nowrap;">${item.discount > 0 ? item.discount + '%' : '—'}</td>
           <td style="text-align:center; white-space:nowrap;">${item.gst}%</td>
           <td style="text-align:right; font-weight:700; white-space:nowrap; font-variant-numeric:tabular-nums;">₹&nbsp;${formatCurrency(total)}</td>
         `;
@@ -2038,7 +2005,7 @@
         history.forEach((q, idx) => {
           let total = 0;
           (q.items || []).forEach(it => {
-            const tax = (it.qty * it.rate) - ((it.qty * it.rate) * ((it.discount || 0) / 100));
+            const tax = (it.qty * it.rate);
             total += tax + (tax * ((it.gst || 0) / 100));
           });
           const st = q.status || 'draft';

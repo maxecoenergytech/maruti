@@ -2020,6 +2020,24 @@
 
         if (pdfBlob && pdfBlob.size > 10000) {
           window.currentQuotationPdfBlob = pdfBlob;
+          // 1. If mobile device supports Web Share API with files, share PDF directly to WhatsApp!
+          const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+          if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+            try {
+              await navigator.share({
+                title: `Quotation ${quoteNo}`,
+                text: whatsappText,
+                files: [pdfFile]
+              });
+              showToast("✅ Quotation PDF sent directly to WhatsApp!", "success", 4000);
+              return;
+            } catch (shareErr) {
+              if (shareErr.name === 'AbortError') return; // User simply dismissed share picker
+              console.warn("Direct file share sheet error, fallback to download + WhatsApp Web:", shareErr);
+            }
+          }
+
+          // 2. Fallback for Desktop & older browsers: Download PDF + open WhatsApp with text + show attachment guide
           downloadBlob(pdfBlob, filename);
           reopenWhatsAppTab();
           openWhatsAppGuideModal(filename, cleanPhone);

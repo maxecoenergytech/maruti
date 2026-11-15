@@ -620,6 +620,11 @@
     </div>
     <div class="nav-actions">
       <button class="btn btn-warning btn-sm" id="btnInstallApp" style="display:none; align-items:center; gap:5px; background:#BE9223; color:#fff; border:none; font-weight:700;" onclick="triggerPwaInstall()">📲 Install App</button>
+      <button class="btn btn-outline" id="navUserBtn" style="color:#fff; border-color:rgba(255,255,255,0.4); display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.12); padding:5px 10px;" onclick="openUserModal()" title="Userwise Login &amp; Staff Switch">
+        <span style="font-size:0.9rem;">👤</span>
+        <span id="navUserName" style="max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Admin</span>
+        <span id="navUserRolePill" class="badge" style="background:#BE9223; color:#fff; font-size:0.65rem; padding:1px 6px; border-radius:10px;">Admin</span>
+      </button>
       <button class="btn btn-outline" style="color:#fff; border-color:rgba(255,255,255,0.4);" onclick="openHistoryModal()">📂 Saved (<span id="savedCount">0</span>)</button>
       <button class="btn btn-outline" style="color:#fff; border-color:rgba(255,255,255,0.4);" onclick="openSettingsModal()">⚙️ Profile</button>
       <button class="btn btn-primary" onclick="newQuotation()">+ New Quote</button>
@@ -734,6 +739,19 @@
                   <select id="taxType" class="form-control" onchange="recalculate()">
                     <option value="intra">Intra-State (Assam: CGST + SGST 50/50)</option>
                     <option value="inter">Inter-State (IGST 100%)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Prepared By Staff User Assignment -->
+              <div class="form-group" style="margin-top:14px; background:#F8FAFC; border:1px solid #CBD5E1; border-radius:6px; padding:10px 12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <label class="form-label" style="margin:0; font-size:0.78rem; font-weight:700; color:#3F527D;">👤 Prepared By (Staff / Sales Rep):</label>
+                  <button type="button" class="btn btn-sm btn-outline" style="font-size:0.7rem; padding:2px 8px;" onclick="openUserModal()">⚡ Switch Staff</button>
+                </div>
+                <div style="margin-top:6px;">
+                  <select id="quoteStaffSelect" class="form-control" onchange="onQuoteStaffChange(this.value)">
+                    <!-- Populated dynamically with staff users -->
                   </select>
                 </div>
               </div>
@@ -1066,6 +1084,7 @@
                     </div>
                     <div id="p_signatureSpace" style="height:45px; display:block;"></div>
                     <p style="font-weight:700; border-top:1px solid #374151; display:inline-block; padding-top:2px; min-width:140px;">Authorized Signatory</p>
+                    <div style="font-size:0.68rem; color:#475569; margin-top:3px;" id="p_preparedByLine">Prepared by: Maruti Admin (Administrator)</div>
                   </div>
                 </div>
               </div>
@@ -1138,10 +1157,23 @@
 
   <!-- Saved Quotations & Backup Modal -->
   <div class="modal" id="historyModal">
-    <div class="modal-content" style="max-width:750px;">
+    <div class="modal-content" style="max-width:780px;">
       <div class="modal-header">
         <span>📂 Saved Quotations &amp; Backups</span>
         <span style="cursor:pointer;" onclick="closeHistoryModal()">&times;</span>
+      </div>
+      <!-- Userwise Staff Filter Bar -->
+      <div style="padding:10px 14px; background:#F8FAFC; border-bottom:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <label style="font-size:0.78rem; font-weight:700; color:#475569;">👤 Filter by Staff:</label>
+          <select id="historyStaffFilter" class="form-control" style="width:auto; min-width:190px; padding:4px 8px; font-size:0.8rem;" onchange="renderHistoryTable()">
+            <option value="ALL">👥 All Staff Quotations</option>
+            <option value="MY">👤 My Quotations Only</option>
+          </select>
+        </div>
+        <div style="font-size:0.75rem; color:#64748B;">
+          Showing <span id="historyFilteredCount">0</span> quotation(s)
+        </div>
       </div>
       <div class="modal-body" style="padding:0;">
         <table style="width:100%;">
@@ -1149,6 +1181,7 @@
             <tr>
               <th>Quote No</th>
               <th>Date</th>
+              <th>Staff / Creator</th>
               <th>Customer</th>
               <th style="text-align:right;">Amount (₹)</th>
               <th style="text-align:center;">Action</th>
@@ -1396,10 +1429,412 @@
     </div>
   </div>
 
+  <!-- Userwise Login & Staff Switch Modal -->
+  <div class="modal" id="userModal">
+    <div class="modal-content" style="max-width:620px;">
+      <div class="modal-header" style="background:#3F527D; color:#fff;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:1.2rem;">👤</span>
+          <span style="font-weight:700;">User &amp; Staff Login</span>
+        </div>
+        <span style="cursor:pointer; font-size:1.4rem;" onclick="closeUserModal()">&times;</span>
+      </div>
+      <div class="modal-body" style="padding:16px;">
+        
+        <!-- Active User Profile Card -->
+        <div style="background:linear-gradient(135deg, #1E293B, #3F527D); color:#fff; border-radius:10px; padding:16px; margin-bottom:18px; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+            <div style="display:flex; gap:12px; align-items:center;">
+              <div id="activeUserAvatar" style="width:48px; height:48px; border-radius:50%; background:#BE9223; color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.15rem; font-weight:800; border:2px solid rgba(255,255,255,0.4); text-transform:uppercase;">
+                MA
+              </div>
+              <div>
+                <div style="font-size:0.72rem; text-transform:uppercase; letter-spacing:0.5px; color:#CBD5E1; font-weight:700;">Current Active Staff User</div>
+                <div id="activeUserName" style="font-size:1.15rem; font-weight:800; line-height:1.2;">Maruti Admin</div>
+                <div style="display:flex; gap:6px; align-items:center; margin-top:3px;">
+                  <span id="activeUserRoleBadge" class="badge" style="background:#BE9223; color:#fff; font-size:0.7rem; padding:2px 8px;">Administrator</span>
+                  <span style="display:inline-flex; align-items:center; gap:4px; font-size:0.72rem; color:#86EFAC;">
+                    <span style="width:6px; height:6px; border-radius:50%; background:#22C55E; display:inline-block;"></span> Active Session
+                  </span>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-sm btn-outline" style="color:#fff; border-color:rgba(255,255,255,0.4); font-size:0.72rem; padding:4px 8px;" onclick="editCurrentStaffProfile()">✏️ Edit Profile</button>
+          </div>
+          <div style="display:flex; gap:16px; flex-wrap:wrap; font-size:0.75rem; color:#E2E8F0; padding-top:8px; border-top:1px solid rgba(255,255,255,0.15);">
+            <div>📱 Phone: <strong id="activeUserPhone">+91 70022 53021</strong></div>
+            <div>✉️ Email: <strong id="activeUserEmail">smarutisales@gmail.com</strong></div>
+          </div>
+        </div>
+
+        <!-- Switch User Section -->
+        <div style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+          <h4 style="font-size:0.9rem; font-weight:700; color:#3F527D; margin:0;">👥 Switch User / Select Staff:</h4>
+          <button class="btn btn-sm btn-success" style="font-size:0.75rem; padding:4px 10px;" onclick="toggleAddStaffForm()">+ Add New Staff</button>
+        </div>
+
+        <!-- Add Staff Form Accordion (Hidden by default) -->
+        <div id="addStaffSection" style="display:none; background:#F8FAFC; border:1px solid #CBD5E1; border-radius:8px; padding:14px; margin-bottom:16px;">
+          <h5 style="margin:0 0 10px 0; font-size:0.85rem; color:#1E293B; font-weight:700;" id="staffFormTitle">➕ Create New Staff Profile</h5>
+          <input type="hidden" id="staffEditId" value="">
+          <div class="grid grid-2" style="margin-bottom:10px;">
+            <div class="form-group">
+              <label class="form-label">Full Name <span style="color:#DC2626;">*</span></label>
+              <input type="text" id="staffInputName" class="form-control" placeholder="e.g. Rahul Sharma" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Designation / Role <span style="color:#DC2626;">*</span></label>
+              <select id="staffInputRole" class="form-control">
+                <option value="Sales Executive">Sales Executive</option>
+                <option value="Senior Sales Manager">Senior Sales Manager</option>
+                <option value="Technical Support &amp; Services">Technical Support &amp; Services</option>
+                <option value="Billing &amp; Accounts">Billing &amp; Accounts</option>
+                <option value="Store &amp; Inventory">Store &amp; Inventory</option>
+                <option value="Administrator">Administrator</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-2" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label class="form-label">Mobile Number</label>
+              <input type="tel" id="staffInputPhone" class="form-control" placeholder="+91 98640 12345">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" id="staffInputEmail" class="form-control" placeholder="staff@marutisales.com">
+            </div>
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:8px;">
+            <button class="btn btn-sm btn-outline" onclick="toggleAddStaffForm(false)">Cancel</button>
+            <button class="btn btn-sm btn-primary" onclick="saveStaffProfile()">💾 Save &amp; Log In</button>
+          </div>
+        </div>
+
+        <!-- Staff List for Quick User-wise Switch -->
+        <div id="staffListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:38vh; overflow-y:auto; padding-right:4px;">
+          <!-- Rendered dynamically -->
+        </div>
+
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:0.75rem; color:#64748B;">💡 Quotations created will automatically be credited to the logged-in user.</span>
+        <button class="btn btn-outline btn-sm" onclick="closeUserModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div id="toastContainer" style="position:fixed; top:20px; right:20px; z-index:9999; display:flex; flex-direction:column; gap:8px; pointer-events:none;"></div>
 
   <script>
+    // User & Staff Management (User-wise Login & Roles)
+    const DEFAULT_USERS = [
+      {
+        id: "user_admin",
+        name: "Maruti Admin",
+        role: "Administrator",
+        phone: "+91 70022 53021",
+        email: "smarutisales@gmail.com",
+        isDefault: true
+      },
+      {
+        id: "user_sales_1",
+        name: "Rahul Sharma",
+        role: "Sales Executive",
+        phone: "+91 98640 12345",
+        email: "sales@marutisales.com",
+        isDefault: true
+      },
+      {
+        id: "user_tech_1",
+        name: "Rajesh Baruah",
+        role: "Technical Support & Services",
+        phone: "+91 94350 54321",
+        email: "service@marutisales.com",
+        isDefault: true
+      },
+      {
+        id: "user_accounts",
+        name: "Accounts Desk",
+        role: "Billing & Accounts",
+        phone: "+91 70022 53021",
+        email: "accounts@marutisales.com",
+        isDefault: true
+      }
+    ];
+
+    let users = [];
+    let currentUserId = "user_admin";
+
+    function loadUsers() {
+      try {
+        const saved = localStorage.getItem('maruti_users');
+        users = saved ? JSON.parse(saved) : [];
+        if (!Array.isArray(users) || users.length === 0) {
+          users = [...DEFAULT_USERS];
+          localStorage.setItem('maruti_users', JSON.stringify(users));
+        }
+      } catch(e) {
+        users = [...DEFAULT_USERS];
+      }
+
+      currentUserId = localStorage.getItem('maruti_current_user_id') || users[0].id;
+      if (!users.some(u => u.id === currentUserId)) {
+        currentUserId = users[0].id;
+      }
+
+      updateUserUI();
+    }
+
+    function getCurrentUser() {
+      return users.find(u => u.id === currentUserId) || users[0] || DEFAULT_USERS[0];
+    }
+
+    function getInitials(name) {
+      if (!name) return "MS";
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    function updateUserUI() {
+      const u = getCurrentUser();
+
+      // Navbar Header
+      const navName = document.getElementById('navUserName');
+      const navRole = document.getElementById('navUserRolePill');
+      if (navName) navName.innerText = u.name;
+      if (navRole) navRole.innerText = u.role.split(' ')[0];
+
+      // User Modal Active Card
+      const actAvatar = document.getElementById('activeUserAvatar');
+      const actName = document.getElementById('activeUserName');
+      const actRole = document.getElementById('activeUserRoleBadge');
+      const actPhone = document.getElementById('activeUserPhone');
+      const actEmail = document.getElementById('activeUserEmail');
+
+      if (actAvatar) actAvatar.innerText = getInitials(u.name);
+      if (actName) actName.innerText = u.name;
+      if (actRole) actRole.innerText = u.role;
+      if (actPhone) actPhone.innerText = u.phone || '-';
+      if (actEmail) actEmail.innerText = u.email || '-';
+
+      // Step 1 Quote Staff Selector
+      updateQuoteStaffSelector();
+
+      // Letterhead Sheet Prepared By
+      const pPrep = document.getElementById('p_preparedByLine');
+      if (pPrep) {
+        pPrep.innerText = `Prepared by: ${u.name} (${u.role})${u.phone ? ' | Mob: ' + u.phone : ''}`;
+      }
+    }
+
+    function updateQuoteStaffSelector() {
+      const select = document.getElementById('quoteStaffSelect');
+      if (!select) return;
+
+      const currentVal = select.value || currentUserId;
+      let html = '';
+      users.forEach(u => {
+        const isSel = (u.id === currentVal) ? 'selected' : '';
+        html += `<option value="${u.id}" ${isSel}>👤 ${escapeHtml(u.name)} (${escapeHtml(u.role)})${u.phone ? ' — ' + escapeHtml(u.phone) : ''}</option>`;
+      });
+      select.innerHTML = html;
+    }
+
+    function onQuoteStaffChange(userId) {
+      const u = users.find(user => user.id === userId);
+      if (u) {
+        const pPrep = document.getElementById('p_preparedByLine');
+        if (pPrep) {
+          pPrep.innerText = `Prepared by: ${u.name} (${u.role})${u.phone ? ' | Mob: ' + u.phone : ''}`;
+        }
+      }
+    }
+
+    function openUserModal() {
+      renderStaffList();
+      toggleAddStaffForm(false);
+      document.getElementById('userModal').classList.add('active');
+    }
+
+    function closeUserModal() {
+      document.getElementById('userModal').classList.remove('active');
+    }
+
+    function renderStaffList() {
+      const container = document.getElementById('staffListContainer');
+      if (!container) return;
+
+      container.innerHTML = '';
+      users.forEach(u => {
+        const isActive = (u.id === currentUserId);
+        const card = document.createElement('div');
+        card.style.cssText = `
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px 14px;
+          border-radius: 8px;
+          border: 1px solid ${isActive ? '#3B82F6' : '#E2E8F0'};
+          background: ${isActive ? '#EFF6FF' : '#FFFFFF'};
+          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        `;
+
+        const initials = getInitials(u.name);
+        card.innerHTML = `
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:36px; height:36px; border-radius:50%; background:${isActive ? '#3B82F6' : '#64748B'}; color:#fff; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:700;">
+              ${initials}
+            </div>
+            <div>
+              <div style="font-weight:700; font-size:0.88rem; color:#1E293B;">
+                ${escapeHtml(u.name)}
+                ${isActive ? '<span class="badge" style="background:#22C55E; color:#fff; font-size:0.65rem; padding:1px 6px; margin-left:6px;">Current User</span>' : ''}
+              </div>
+              <div style="font-size:0.75rem; color:#64748B;">
+                ${escapeHtml(u.role)} ${u.phone ? '&bull; ' + escapeHtml(u.phone) : ''}
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            ${!isActive ? \`
+              <button class="btn btn-sm btn-primary" style="padding:4px 10px; font-size:0.75rem;" onclick="switchUser('${u.id}')">
+                ⚡ Log In
+              </button>
+            \` : \`
+              <span style="font-size:0.75rem; color:#2563EB; font-weight:700; padding:4px 8px;">Logged In</span>
+            \`}
+            ${!u.isDefault ? \`
+              <button class="btn btn-sm btn-outline" style="padding:4px 7px; font-size:0.72rem;" onclick="editStaffProfile('${u.id}')" title="Edit Staff Profile">✏️</button>
+              <button class="btn btn-sm btn-danger" style="padding:4px 7px; font-size:0.72rem;" onclick="deleteStaffProfile('${u.id}')" title="Delete Staff Profile">&times;</button>
+            \` : \`
+              <button class="btn btn-sm btn-outline" style="padding:4px 7px; font-size:0.72rem;" onclick="editStaffProfile('${u.id}')" title="Edit Profile">✏️</button>
+            \`}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function switchUser(userId) {
+      if (!users.some(u => u.id === userId)) return;
+      currentUserId = userId;
+      localStorage.setItem('maruti_current_user_id', currentUserId);
+      updateUserUI();
+      renderStaffList();
+      const u = getCurrentUser();
+      showToast(`👋 Logged in as ${u.name} (${u.role})`, "success", 3000);
+    }
+
+    function toggleAddStaffForm(show = null) {
+      const section = document.getElementById('addStaffSection');
+      const title = document.getElementById('staffFormTitle');
+      if (!section) return;
+
+      const willShow = show !== null ? show : (section.style.display === 'none');
+      section.style.display = willShow ? 'block' : 'none';
+
+      if (willShow) {
+        document.getElementById('staffEditId').value = '';
+        if (title) title.innerText = '➕ Create New Staff Profile';
+        document.getElementById('staffInputName').value = '';
+        document.getElementById('staffInputRole').value = 'Sales Executive';
+        document.getElementById('staffInputPhone').value = '';
+        document.getElementById('staffInputEmail').value = '';
+        document.getElementById('staffInputName').focus();
+      }
+    }
+
+    function editCurrentStaffProfile() {
+      editStaffProfile(currentUserId);
+    }
+
+    function editStaffProfile(userId) {
+      const u = users.find(user => user.id === userId);
+      if (!u) return;
+
+      const section = document.getElementById('addStaffSection');
+      const title = document.getElementById('staffFormTitle');
+      section.style.display = 'block';
+
+      document.getElementById('staffEditId').value = u.id;
+      if (title) title.innerText = `✏️ Edit Staff: ${u.name}`;
+      document.getElementById('staffInputName').value = u.name;
+      document.getElementById('staffInputRole').value = u.role;
+      document.getElementById('staffInputPhone').value = u.phone || '';
+      document.getElementById('staffInputEmail').value = u.email || '';
+      document.getElementById('staffInputName').focus();
+    }
+
+    function saveStaffProfile() {
+      const editId = document.getElementById('staffEditId').value.trim();
+      const name = document.getElementById('staffInputName').value.trim();
+      const role = document.getElementById('staffInputRole').value;
+      const phone = document.getElementById('staffInputPhone').value.trim();
+      const email = document.getElementById('staffInputEmail').value.trim();
+
+      if (!name) {
+        showToast("⚠️ Please enter staff full name.", "warning");
+        document.getElementById('staffInputName').focus();
+        return;
+      }
+
+      if (editId) {
+        const idx = users.findIndex(u => u.id === editId);
+        if (idx >= 0) {
+          users[idx] = {
+            ...users[idx],
+            name,
+            role,
+            phone,
+            email,
+            updatedAt: new Date().toISOString()
+          };
+          showToast(`✅ Profile for "${name}" updated!`, "success", 3000);
+        }
+      } else {
+        const newId = `user_${Date.now()}`;
+        const newStaff = {
+          id: newId,
+          name,
+          role,
+          phone,
+          email,
+          createdAt: new Date().toISOString()
+        };
+        users.push(newStaff);
+        currentUserId = newId;
+        localStorage.setItem('maruti_current_user_id', currentUserId);
+        showToast(`✅ Created staff account for "${name}" and logged in!`, "success", 3500);
+      }
+
+      localStorage.setItem('maruti_users', JSON.stringify(users));
+      updateUserUI();
+      renderStaffList();
+      toggleAddStaffForm(false);
+    }
+
+    function deleteStaffProfile(userId) {
+      const u = users.find(user => user.id === userId);
+      if (!u) return;
+      if (u.isDefault) {
+        showToast("Default staff profiles cannot be deleted.", "warning");
+        return;
+      }
+      if (!confirm(`Are you sure you want to remove staff account "${u.name}"?`)) return;
+
+      users = users.filter(user => user.id !== userId);
+      if (currentUserId === userId) {
+        currentUserId = users[0].id;
+        localStorage.setItem('maruti_current_user_id', currentUserId);
+      }
+      localStorage.setItem('maruti_users', JSON.stringify(users));
+      updateUserUI();
+      renderStaffList();
+      showToast(`🗑️ Removed staff account "${u.name}".`, "info", 3000);
+    }
+
     // Indian State GST Codes Dictionary
     const GST_STATES = {
       "01": "Jammu and Kashmir", "02": "Himachal Pradesh", "03": "Punjab", "04": "Chandigarh",
@@ -1883,6 +2318,7 @@
     // Initialize on Load
     window.addEventListener('DOMContentLoaded', () => {
       loadSettings();
+      loadUsers();
       loadCustomCatalog();
       initDates();
       updateSavedCount();
@@ -2588,17 +3024,31 @@
         if (bBranch) msg += `• Branch: ${bBranch}\n`;
       }
       
+      // Include Prepared By Staff Representative in WhatsApp message
+      const prepUser = users.find(u => u.id === (document.getElementById('quoteStaffSelect')?.value || currentUserId)) || getCurrentUser();
+      if (prepUser && prepUser.name) {
+        msg += `\n👤 *Prepared By:* ${prepUser.name} (${prepUser.role})${prepUser.phone ? ' | Mob: ' + prepUser.phone : ''}\n`;
+      }
+
       msg += `\nFor orders or queries, call us at +91 70022 53021. Thank you!`;
       return msg;
     }
 
     function saveQuotationToStorage() {
+      const prepUser = users.find(u => u.id === (document.getElementById('quoteStaffSelect')?.value || currentUserId)) || getCurrentUser();
       const quote = {
         number: document.getElementById('quoteNumber').value || generateNextQuoteNumber(),
         status: document.getElementById('quoteStatusSelect')?.value || 'draft',
         date: document.getElementById('quoteDate').value,
         validUntil: document.getElementById('validUntil').value,
         taxType: document.getElementById('taxType').value,
+        preparedBy: {
+          id: prepUser.id,
+          name: prepUser.name,
+          role: prepUser.role,
+          phone: prepUser.phone || '',
+          email: prepUser.email || ''
+        },
         client: {
           name: document.getElementById('clientName').value,
           contact: document.getElementById('contactPerson').value,
@@ -2679,37 +3129,74 @@
     }
 
     function openHistoryModal() {
+      const staffFilter = document.getElementById('historyStaffFilter');
+      if (staffFilter) {
+        const curVal = staffFilter.value || 'ALL';
+        let opts = `
+          <option value="ALL" ${curVal === 'ALL' ? 'selected' : ''}>👥 All Staff Quotations</option>
+          <option value="MY" ${curVal === 'MY' ? 'selected' : ''}>👤 My Quotes Only (${getCurrentUser().name})</option>
+        `;
+        users.forEach(u => {
+          opts += `<option value="${u.id}" ${curVal === u.id ? 'selected' : ''}>👤 ${escapeHtml(u.name)} (${escapeHtml(u.role)})</option>`;
+        });
+        staffFilter.innerHTML = opts;
+      }
+      renderHistoryTable();
+      document.getElementById('historyModal').classList.add('active');
+    }
+
+    function renderHistoryTable() {
       const history = JSON.parse(localStorage.getItem('maruti_quotes') || '[]');
       const tbody = document.getElementById('historyTableBody');
+      const filter = document.getElementById('historyStaffFilter')?.value || 'ALL';
+      const countEl = document.getElementById('historyFilteredCount');
       tbody.innerHTML = '';
-      if (history.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748B;">No quotations saved yet.</td></tr>';
-      } else {
-        history.forEach((q, idx) => {
-          let total = 0;
-          (q.items || []).forEach(it => {
-            const tax = (it.qty * it.rate);
-            total += tax + (tax * ((it.gst || 0) / 100));
-          });
-          const st = q.status || 'draft';
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>
-              <strong>${escapeHtml(q.number)}</strong>
-              <div style="margin-top:2px;"><span class="badge status-badge-${st}" style="font-size:0.65rem; padding:2px 6px;">${st.toUpperCase()}</span></div>
-            </td>
-            <td>${escapeHtml(q.date)}</td>
-            <td>${escapeHtml(q.client?.name || 'Walk-in')}</td>
-            <td style="text-align:right; font-weight:600; font-variant-numeric:tabular-nums;">₹ ${formatCurrency(Math.round(total))}</td>
-            <td style="text-align:center;">
-              <button class="btn btn-sm btn-primary" onclick="loadQuoteFromHistory(${idx})">Load</button>
-              <button class="btn btn-sm btn-danger" onclick="deleteQuoteFromHistory(${idx})">&times;</button>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
+
+      const filtered = history.filter(q => {
+        if (filter === 'ALL') return true;
+        if (filter === 'MY') {
+          return (q.preparedBy?.id === currentUserId) || (q.preparedBy?.name === getCurrentUser().name);
+        }
+        return (q.preparedBy?.id === filter) || (q.preparedBy?.name === users.find(u => u.id === filter)?.name);
+      });
+
+      if (countEl) countEl.innerText = filtered.length;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:24px; color:#64748B;">No quotations found for this staff filter.</td></tr>';
+        return;
       }
-      document.getElementById('historyModal').classList.add('active');
+
+      filtered.forEach((q) => {
+        const idx = history.findIndex(h => h.number === q.number);
+        let total = 0;
+        (q.items || []).forEach(it => {
+          const tax = (it.qty * it.rate);
+          total += tax + (tax * ((it.gst || 0) / 100));
+        });
+        const st = q.status || 'draft';
+        const staffName = q.preparedBy?.name || 'Maruti Admin';
+        const staffRole = q.preparedBy?.role || 'Staff';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>
+            <strong>${escapeHtml(q.number)}</strong>
+            <div style="margin-top:2px;"><span class="badge status-badge-${st}" style="font-size:0.65rem; padding:2px 6px;">${st.toUpperCase()}</span></div>
+          </td>
+          <td>${escapeHtml(q.date)}</td>
+          <td>
+            <div style="font-weight:600; color:#1E293B; font-size:0.8rem;">👤 ${escapeHtml(staffName)}</div>
+            <div style="font-size:0.7rem; color:#64748B;">${escapeHtml(staffRole)}</div>
+          </td>
+          <td>${escapeHtml(q.client?.name || 'Walk-in')}</td>
+          <td style="text-align:right; font-weight:600; font-variant-numeric:tabular-nums;">₹ ${formatCurrency(Math.round(total))}</td>
+          <td style="text-align:center; white-space:nowrap;">
+            <button class="btn btn-sm btn-primary" onclick="loadQuoteFromHistory(${idx})">Load</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteQuoteFromHistory(${idx})">&times;</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
     }
 
     function closeHistoryModal() {
@@ -2738,6 +3225,14 @@
         document.getElementById('quoteStatusSelect').value = status;
       }
       updateQuoteStatus(status);
+
+      if (q.preparedBy && q.preparedBy.id) {
+        const staffSelect = document.getElementById('quoteStaffSelect');
+        if (staffSelect) {
+          staffSelect.value = q.preparedBy.id;
+          onQuoteStaffChange(q.preparedBy.id);
+        }
+      }
 
       const hasSig = q.includeSignature || false;
       if (document.getElementById('toggleSignatureSwitch')) {
@@ -2772,6 +3267,8 @@
         exportedAt: new Date().toISOString(),
         firmSettings: JSON.parse(localStorage.getItem('maruti_firm_settings') || '{}'),
         customCatalog: JSON.parse(localStorage.getItem('maruti_custom_catalog') || '[]'),
+        users: JSON.parse(localStorage.getItem('maruti_users') || '[]'),
+        currentUserId: localStorage.getItem('maruti_current_user_id') || 'user_admin',
         quotations: JSON.parse(localStorage.getItem('maruti_quotes') || '[]')
       };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -2802,6 +3299,13 @@
           if (imported.customCatalog && Array.isArray(imported.customCatalog)) {
             localStorage.setItem('maruti_custom_catalog', JSON.stringify(imported.customCatalog));
             loadCustomCatalog();
+          }
+          if (imported.users && Array.isArray(imported.users)) {
+            localStorage.setItem('maruti_users', JSON.stringify(imported.users));
+            if (imported.currentUserId) {
+              localStorage.setItem('maruti_current_user_id', imported.currentUserId);
+            }
+            loadUsers();
           }
           const existing = JSON.parse(localStorage.getItem('maruti_quotes') || '[]');
           quotes.forEach(q => {

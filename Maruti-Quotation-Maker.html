@@ -1597,7 +1597,7 @@
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
 
-    function updateUserUI() {
+    function updateUserUI(forceStaffSync = false) {
       const u = getCurrentUser();
 
       // Navbar Header
@@ -1620,7 +1620,7 @@
       if (actEmail) actEmail.innerText = u.email || '-';
 
       // Step 1 Quote Staff Selector
-      updateQuoteStaffSelector();
+      updateQuoteStaffSelector(forceStaffSync);
 
       // Letterhead Sheet Prepared By
       const pPrep = document.getElementById('p_preparedByLine');
@@ -1629,17 +1629,18 @@
       }
     }
 
-    function updateQuoteStaffSelector() {
+    function updateQuoteStaffSelector(forceSync = false) {
       const select = document.getElementById('quoteStaffSelect');
       if (!select) return;
 
-      const currentVal = select.value || currentUserId;
+      const currentVal = forceSync ? currentUserId : (select.value || currentUserId);
       let html = '';
       users.forEach(u => {
         const isSel = (u.id === currentVal) ? 'selected' : '';
         html += `<option value="${u.id}" ${isSel}>👤 ${escapeHtml(u.name)} (${escapeHtml(u.role)})${u.phone ? ' — ' + escapeHtml(u.phone) : ''}</option>`;
       });
       select.innerHTML = html;
+      select.value = currentVal;
     }
 
     function onQuoteStaffChange(userId) {
@@ -1682,6 +1683,14 @@
         `;
 
         const initials = getInitials(u.name);
+        const loginBtnHtml = !isActive
+          ? '<button class=\"btn btn-sm btn-primary\" style=\"padding:4px 10px; font-size:0.75rem;\" onclick=\"switchUser(\'' + u.id + '\')\">⚡ Log In</button>'
+          : '<span style=\"font-size:0.75rem; color:#2563EB; font-weight:700; padding:4px 8px;\">Logged In</span>';
+
+        const actionBtnsHtml = !u.isDefault
+          ? '<button class=\"btn btn-sm btn-outline\" style=\"padding:4px 7px; font-size:0.72rem;\" onclick=\"editStaffProfile(\'' + u.id + '\')\" title=\"Edit Staff Profile\">✏️</button><button class=\"btn btn-sm btn-danger\" style=\"padding:4px 7px; font-size:0.72rem;\" onclick=\"deleteStaffProfile(\'' + u.id + '\')\" title=\"Delete Staff Profile\">&times;</button>'
+          : '<button class=\"btn btn-sm btn-outline\" style=\"padding:4px 7px; font-size:0.72rem;\" onclick=\"editStaffProfile(\'' + u.id + '\')\" title=\"Edit Profile\">✏️</button>';
+
         card.innerHTML = `
           <div style="display:flex; align-items:center; gap:10px;">
             <div style="width:36px; height:36px; border-radius:50%; background:${isActive ? '#3B82F6' : '#64748B'}; color:#fff; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:700;">
@@ -1698,19 +1707,8 @@
             </div>
           </div>
           <div style="display:flex; gap:6px; align-items:center;">
-            ${!isActive ? \`
-              <button class="btn btn-sm btn-primary" style="padding:4px 10px; font-size:0.75rem;" onclick="switchUser('${u.id}')">
-                ⚡ Log In
-              </button>
-            \` : \`
-              <span style="font-size:0.75rem; color:#2563EB; font-weight:700; padding:4px 8px;">Logged In</span>
-            \`}
-            ${!u.isDefault ? \`
-              <button class="btn btn-sm btn-outline" style="padding:4px 7px; font-size:0.72rem;" onclick="editStaffProfile('${u.id}')" title="Edit Staff Profile">✏️</button>
-              <button class="btn btn-sm btn-danger" style="padding:4px 7px; font-size:0.72rem;" onclick="deleteStaffProfile('${u.id}')" title="Delete Staff Profile">&times;</button>
-            \` : \`
-              <button class="btn btn-sm btn-outline" style="padding:4px 7px; font-size:0.72rem;" onclick="editStaffProfile('${u.id}')" title="Edit Profile">✏️</button>
-            \`}
+            ${loginBtnHtml}
+            ${actionBtnsHtml}
           </div>
         `;
         container.appendChild(card);
@@ -1721,7 +1719,7 @@
       if (!users.some(u => u.id === userId)) return;
       currentUserId = userId;
       localStorage.setItem('maruti_current_user_id', currentUserId);
-      updateUserUI();
+      updateUserUI(true);
       renderStaffList();
       const u = getCurrentUser();
       showToast(`👋 Logged in as ${u.name} (${u.role})`, "success", 3000);
@@ -2176,6 +2174,10 @@
       filtered.forEach(prod => {
         const tr = document.createElement('tr');
         tr.style.borderBottom = '1px solid #E2E8F0';
+        const customActionsHtml = prod.isCustom
+          ? '<button class=\"btn btn-sm btn-outline\" style=\"padding:3px 6px; font-size:0.72rem; margin-right:4px;\" onclick=\"editCustomProduct(\'' + prod.id + '\')\" title=\"Edit product details\">✏️</button><button class=\"btn btn-sm btn-danger\" style=\"padding:3px 6px; font-size:0.72rem;\" onclick=\"deleteCustomProduct(\'' + prod.id + '\')\" title=\"Delete product from catalog\">&times;</button>'
+          : '';
+
         tr.innerHTML = `
           <td style="padding:8px 10px;">
             <div style="font-weight:600; color:#1E293B;">${escapeHtml(prod.name)}</div>
@@ -2187,10 +2189,7 @@
           <td style="padding:8px 10px; text-align:center;">${prod.gst || 0}%</td>
           <td style="padding:8px 10px; text-align:center; white-space:nowrap;">
             <button class="btn btn-sm btn-primary" style="padding:3px 8px; font-size:0.72rem; margin-right:4px;" onclick="addItemFromCatalog('${prod.id}'); showToast('Added to quote!', 'info', 1500);" title="Add 1 to current quotation">➕ Quote</button>
-            ${prod.isCustom ? \`
-              <button class="btn btn-sm btn-outline" style="padding:3px 6px; font-size:0.72rem; margin-right:4px;" onclick="editCustomProduct('${prod.id}')" title="Edit product details">✏️</button>
-              <button class="btn btn-sm btn-danger" style="padding:3px 6px; font-size:0.72rem;" onclick="deleteCustomProduct('${prod.id}')" title="Delete product from catalog">&times;</button>
-            \` : ''}
+            ${customActionsHtml}
           </td>
         `;
         tbody.appendChild(tr);
@@ -2674,8 +2673,9 @@
       const stateInput = document.getElementById('clientState');
       const taxTypeSelect = document.getElementById('taxType');
 
-      const gstin = (rawGstin || '').trim().toUpperCase();
-      gstinInput.value = gstin;
+      const val = (rawGstin !== undefined) ? rawGstin : (gstinInput ? gstinInput.value : '');
+      const gstin = (val || '').trim().toUpperCase();
+      if (gstinInput) gstinInput.value = gstin;
 
       // 1. Cleared / Empty: Reset to default Assam (18) and Intra-state
       if (!gstin) {

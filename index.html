@@ -795,38 +795,14 @@
           <div class="card">
             <div class="card-header" style="flex-wrap: wrap; gap: 8px;">
               <span>📦 Step 3: Products &amp; Services Catalog</span>
-              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; width:100%; max-width:480px; justify-content:flex-end;">
-                <select id="catalogPicker" class="form-control" style="flex:1 1 200px; min-width:180px;" onchange="addItemFromCatalog(this.value)">
-                  <option value="">⚡ Quick Add Item From Catalog...</option>
-                  <optgroup label="Computer Hardware">
-                    <option value="1">HP ProBook 440 G10 Laptop (₹ 62,500 | 18% GST)</option>
-                    <option value="2">Dell OptiPlex 7010 Desktop PC (₹ 48,000 | 18% GST)</option>
-                    <option value="3">HP LaserJet Pro M404dn Printer (₹ 24,500 | 18% GST)</option>
-                    <option value="4">Seagate IronWolf 4TB NAS HDD (₹ 9,200 | 18% GST)</option>
-                    <option value="5">Crucial 16GB DDR4 3200MHz RAM (₹ 3,400 | 18% GST)</option>
-                  </optgroup>
-                  <optgroup label="CCTV &amp; Security">
-                    <option value="6">Hikvision 2MP IP Bullet Camera (₹ 2,400 | 18% GST)</option>
-                    <option value="7">Hikvision 2MP IP Dome Camera (₹ 2,200 | 18% GST)</option>
-                    <option value="8">CP Plus 8-Channel 4K NVR (₹ 7,500 | 18% GST)</option>
-                    <option value="9">Hikvision Cat6 UTP 305m Cable (₹ 7,800 | 18% GST)</option>
-                  </optgroup>
-                  <optgroup label="Networking">
-                    <option value="10">Cisco Catalyst 24-Port Switch (₹ 18,500 | 18% GST)</option>
-                    <option value="11">TP-Link Omada EAP610 Wi-Fi 6 AP (₹ 7,200 | 18% GST)</option>
-                    <option value="12">D-Link 9U Wall Mount Server Rack (₹ 4,800 | 18% GST)</option>
-                  </optgroup>
-                  <optgroup label="Software &amp; Antivirus">
-                    <option value="13">Microsoft Windows 11 Pro 64-bit (₹ 12,500 | 18% GST)</option>
-                    <option value="14">Quick Heal Total Security 3-User (₹ 2,100 | 18% GST)</option>
-                  </optgroup>
-                  <optgroup label="Services &amp; AMC">
-                    <option value="15">Annual Maintenance Contract (AMC) (₹ 18,000 | 18% GST)</option>
-                    <option value="16">CCTV Installation &amp; Testing Service (₹ 3,500 | 18% GST)</option>
-                    <option value="17">Structured Cat6 LAN Cabling Point (₹ 450 | 18% GST)</option>
-                  </optgroup>
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; width:100%; max-width:580px; justify-content:flex-end;">
+                <select id="catalogPicker" class="form-control" style="flex:1 1 200px; min-width:180px;" onchange="onCatalogSelectChange(this.value)">
+                  <option value="">⚡ Select Item From Catalog...</option>
+                  <option value="__ADD_NEW__" style="font-weight:700; color:#1D4ED8; background:#EFF6FF;">➕ + Add New Product to Catalog...</option>
                 </select>
                 <button class="btn btn-sm btn-primary" onclick="addNewBlankRow()">+ Blank Line</button>
+                <button class="btn btn-sm btn-success" onclick="openAddProductModal()" title="Add a new custom product or service to catalog">+ Add Product</button>
+                <button class="btn btn-sm btn-outline" onclick="openManageCatalogModal()" title="View and manage product catalog">⚙️ Catalog</button>
               </div>
             </div>
             <div class="card-body" style="padding:0;">
@@ -841,7 +817,7 @@
                       <th style="width:125px; text-align:right;">Rate (₹)</th>
                       <th style="width:85px; text-align:center;">GST %</th>
                       <th style="width:130px; text-align:right;">Total (₹)</th>
-                      <th style="width:40px; text-align:center;">Del</th>
+                      <th style="width:85px; text-align:center;">Action</th>
                     </tr>
                   </thead>
                   <tbody id="itemsBody">
@@ -1296,6 +1272,130 @@
     </div>
   </div>
 
+  <!-- Add / Edit Product Modal -->
+  <div class="modal" id="addProductModal">
+    <div class="modal-content" style="max-width:540px;">
+      <div class="modal-header" style="background:#3F527D; color:#fff;">
+        <span id="addProductModalTitle" style="font-weight:700;">📦 Add New Product / Service</span>
+        <span style="cursor:pointer; font-size:1.4rem;" onclick="closeAddProductModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="prodEditId" value="">
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label">Product / Service Name <span style="color:#DC2626;">*</span></label>
+          <input type="text" id="prodName" class="form-control" placeholder="e.g. Logitech Wireless Mouse M185 or Printer AMC Service" required>
+        </div>
+
+        <div class="grid grid-2" style="margin-bottom:12px;">
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select id="prodCategory" class="form-control" onchange="toggleCustomCategoryField(this.value)">
+              <option value="Computer Hardware">Computer Hardware</option>
+              <option value="CCTV &amp; Security">CCTV &amp; Security</option>
+              <option value="Networking">Networking</option>
+              <option value="Software &amp; Antivirus">Software &amp; Antivirus</option>
+              <option value="Services &amp; AMC">Services &amp; AMC</option>
+              <option value="General IT Supplies">General IT Supplies</option>
+              <option value="__OTHER__">+ New / Custom Category...</option>
+            </select>
+          </div>
+          <div class="form-group" id="customCategoryGroup" style="display:none;">
+            <label class="form-label">Custom Category Name</label>
+            <input type="text" id="prodCustomCategory" class="form-control" placeholder="e.g. Biometrics &amp; Access Control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Unit of Measure</label>
+            <select id="prodUnit" class="form-control">
+              <option value="Pcs">Pcs (Pieces)</option>
+              <option value="Set">Set</option>
+              <option value="Nos">Nos (Numbers)</option>
+              <option value="Lot">Lot</option>
+              <option value="Mtr">Mtr (Meters)</option>
+              <option value="Year">Year</option>
+              <option value="Month">Month</option>
+              <option value="Job">Job / Service</option>
+              <option value="Pkt">Pkt (Packet)</option>
+              <option value="Box">Box</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-bottom:14px;">
+          <div class="form-group">
+            <label class="form-label">Unit Rate / Price (₹) <span style="color:#DC2626;">*</span></label>
+            <input type="number" id="prodRate" class="form-control" placeholder="0.00" min="0" step="any" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">GST Tax Rate</label>
+            <select id="prodGst" class="form-control">
+              <option value="18" selected>18% (Standard IT/Electronics)</option>
+              <option value="12">12%</option>
+              <option value="5">5%</option>
+              <option value="28">28%</option>
+              <option value="0">0% (Nil / Exempt)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:6px; padding:10px 12px; margin-bottom:10px;">
+          <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; font-weight:600; cursor:pointer;">
+            <input type="checkbox" id="prodInsertCurrent" checked>
+            <span>Also insert this item into current quotation now</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeAddProductModal()">Cancel</button>
+        <button class="btn btn-success" onclick="saveNewProduct()">💾 Save to Catalog</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manage Catalog Modal -->
+  <div class="modal" id="manageCatalogModal">
+    <div class="modal-content" style="max-width:800px;">
+      <div class="modal-header" style="background:#3F527D; color:#fff;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-weight:700;">📦 Product &amp; Services Catalog</span>
+          <span id="catalogCountBadge" class="badge" style="background:rgba(255,255,255,0.25); color:#fff; font-size:0.75rem;">0 Items</span>
+        </div>
+        <span style="cursor:pointer; font-size:1.4rem;" onclick="closeManageCatalogModal()">&times;</span>
+      </div>
+      <div class="modal-body" style="padding:14px;">
+        <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
+          <input type="text" id="catalogSearchInput" class="form-control" style="flex:1 1 240px; min-width:200px;" placeholder="🔍 Search product name or category..." oninput="filterCatalogTable()">
+          <select id="catalogCategoryFilter" class="form-control" style="width:auto; min-width:160px;" onchange="filterCatalogTable()">
+            <option value="ALL">All Categories</option>
+            <option value="CUSTOM">⭐ Custom Products Only</option>
+          </select>
+          <button class="btn btn-sm btn-success" onclick="openAddProductModal()">+ Add New Product</button>
+        </div>
+
+        <div style="max-height:55vh; overflow-y:auto; border:1px solid #E2E8F0; border-radius:6px;">
+          <table style="width:100%; font-size:0.82rem; border-collapse:collapse;" id="catalogManagementTable">
+            <thead style="position:sticky; top:0; background:#F8FAFC; z-index:1;">
+              <tr>
+                <th style="padding:8px; text-align:left;">Product / Service Description</th>
+                <th style="padding:8px; text-align:left; width:130px;">Category</th>
+                <th style="padding:8px; text-align:center; width:60px;">Unit</th>
+                <th style="padding:8px; text-align:right; width:90px;">Rate (₹)</th>
+                <th style="padding:8px; text-align:center; width:65px;">GST</th>
+                <th style="padding:8px; text-align:center; width:130px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="catalogTableBody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:0.75rem; color:#64748B;">💡 Custom products are stored safely in your browser and included in JSON backups.</span>
+        <button class="btn btn-outline btn-sm" onclick="closeManageCatalogModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div id="toastContainer" style="position:fixed; top:20px; right:20px; z-index:9999; display:flex; flex-direction:column; gap:8px; pointer-events:none;"></div>
 
@@ -1313,26 +1413,377 @@
       "97": "Other Territory"
     };
 
-    // Product Catalog Database
-    const CATALOG = {
-      1: { name: "HP ProBook 440 G10 Laptop (i5 13th Gen, 16GB, 512GB SSD, Win 11)", unit: "Pcs", rate: 62500, gst: 18 },
-      2: { name: "Dell OptiPlex 7010 Desktop PC (Core i5, 8GB RAM, 512GB SSD)", unit: "Set", rate: 48000, gst: 18 },
-      3: { name: "HP LaserJet Pro M404dn Monochrome Duplex Network Printer", unit: "Pcs", rate: 24500, gst: 18 },
-      4: { name: "Seagate IronWolf 4TB NAS Surveillance Internal SATA HDD", unit: "Pcs", rate: 9200, gst: 18 },
-      5: { name: "Crucial 16GB DDR4 3200MHz Desktop RAM Module", unit: "Pcs", rate: 3400, gst: 18 },
-      6: { name: "Hikvision 2MP IP Bullet Outdoor Night Vision Camera (DS-2CD1023G0E-I)", unit: "Pcs", rate: 2400, gst: 18 },
-      7: { name: "Hikvision 2MP IP Dome Indoor Audio Security Camera", unit: "Pcs", rate: 2200, gst: 18 },
-      8: { name: "CP Plus 8-Channel 4K Ultra HD Network Video Recorder (NVR)", unit: "Set", rate: 7500, gst: 18 },
-      9: { name: "Hikvision Cat6 UTP 4-Pair Pure Copper Solid 305m Cable Roll", unit: "Lot", rate: 7800, gst: 18 },
-      10: { name: "Cisco Catalyst 24-Port Gigabit Managed Layer-2 Network Switch", unit: "Pcs", rate: 18500, gst: 18 },
-      11: { name: "TP-Link Omada EAP610 Wi-Fi 6 Dual-Band Ceiling Mount Access Point", unit: "Pcs", rate: 7200, gst: 18 },
-      12: { name: "D-Link 9U Wall Mount Server/Network Rack with PDU and Trays", unit: "Pcs", rate: 4800, gst: 18 },
-      13: { name: "Microsoft Windows 11 Professional 64-bit OEM License Key", unit: "Pcs", rate: 12500, gst: 18 },
-      14: { name: "Quick Heal Total Security Antivirus 3-User 1-Year Retail Pack", unit: "Pcs", rate: 2100, gst: 18 },
-      15: { name: "Annual Maintenance Contract (AMC) for Office IT Infrastructure", unit: "Year", rate: 18000, gst: 18 },
-      16: { name: "CCTV Installation, Cabling, Conduit & Complete Testing Service", unit: "Set", rate: 3500, gst: 18 },
-      17: { name: "Structured Cat6 LAN Cabling Point Termination with Faceplate & I/O", unit: "Lot", rate: 450, gst: 18 },
+    // Product Catalog Database (Built-in + Custom User Products)
+    const BUILTIN_CATALOG = {
+      "1": { id: "1", name: "HP ProBook 440 G10 Laptop (i5 13th Gen, 16GB, 512GB SSD, Win 11)", category: "Computer Hardware", unit: "Pcs", rate: 62500, gst: 18 },
+      "2": { id: "2", name: "Dell OptiPlex 7010 Desktop PC (Core i5, 8GB RAM, 512GB SSD)", category: "Computer Hardware", unit: "Set", rate: 48000, gst: 18 },
+      "3": { id: "3", name: "HP LaserJet Pro M404dn Monochrome Duplex Network Printer", category: "Computer Hardware", unit: "Pcs", rate: 24500, gst: 18 },
+      "4": { id: "4", name: "Seagate IronWolf 4TB NAS Surveillance Internal SATA HDD", category: "Computer Hardware", unit: "Pcs", rate: 9200, gst: 18 },
+      "5": { id: "5", name: "Crucial 16GB DDR4 3200MHz Desktop RAM Module", category: "Computer Hardware", unit: "Pcs", rate: 3400, gst: 18 },
+      "6": { id: "6", name: "Hikvision 2MP IP Bullet Outdoor Night Vision Camera (DS-2CD1023G0E-I)", category: "CCTV & Security", unit: "Pcs", rate: 2400, gst: 18 },
+      "7": { id: "7", name: "Hikvision 2MP IP Dome Indoor Audio Security Camera", category: "CCTV & Security", unit: "Pcs", rate: 2200, gst: 18 },
+      "8": { id: "8", name: "CP Plus 8-Channel 4K Ultra HD Network Video Recorder (NVR)", category: "CCTV & Security", unit: "Set", rate: 7500, gst: 18 },
+      "9": { id: "9", name: "Hikvision Cat6 UTP 4-Pair Pure Copper Solid 305m Cable Roll", category: "CCTV & Security", unit: "Lot", rate: 7800, gst: 18 },
+      "10": { id: "10", name: "Cisco Catalyst 24-Port Gigabit Managed Layer-2 Network Switch", category: "Networking", unit: "Pcs", rate: 18500, gst: 18 },
+      "11": { id: "11", name: "TP-Link Omada EAP610 Wi-Fi 6 Dual-Band Ceiling Mount Access Point", category: "Networking", unit: "Pcs", rate: 7200, gst: 18 },
+      "12": { id: "12", name: "D-Link 9U Wall Mount Server/Network Rack with PDU and Trays", category: "Networking", unit: "Pcs", rate: 4800, gst: 18 },
+      "13": { id: "13", name: "Microsoft Windows 11 Professional 64-bit OEM License Key", category: "Software & Antivirus", unit: "Pcs", rate: 12500, gst: 18 },
+      "14": { id: "14", name: "Quick Heal Total Security Antivirus 3-User 1-Year Retail Pack", category: "Software & Antivirus", unit: "Pcs", rate: 2100, gst: 18 },
+      "15": { id: "15", name: "Annual Maintenance Contract (AMC) for Office IT Infrastructure", category: "Services & AMC", unit: "Year", rate: 18000, gst: 18 },
+      "16": { id: "16", name: "CCTV Installation, Cabling, Conduit & Complete Testing Service", category: "Services & AMC", unit: "Set", rate: 3500, gst: 18 },
+      "17": { id: "17", name: "Structured Cat6 LAN Cabling Point Termination with Faceplate & I/O", category: "Services & AMC", unit: "Lot", rate: 450, gst: 18 }
     };
+
+    let CATALOG = { ...BUILTIN_CATALOG };
+    let customCatalog = [];
+
+    function loadCustomCatalog() {
+      CATALOG = { ...BUILTIN_CATALOG };
+      try {
+        const saved = localStorage.getItem('maruti_custom_catalog');
+        customCatalog = saved ? JSON.parse(saved) : [];
+        if (!Array.isArray(customCatalog)) customCatalog = [];
+      } catch(e) {
+        customCatalog = [];
+      }
+
+      customCatalog.forEach(item => {
+        if (item && item.id) {
+          CATALOG[item.id] = {
+            id: item.id,
+            name: item.name,
+            category: item.category || 'Custom Products',
+            unit: item.unit || 'Pcs',
+            rate: parseFloat(item.rate) || 0,
+            gst: parseFloat(item.gst) || 18,
+            isCustom: true
+          };
+        }
+      });
+
+      updateCatalogSelect();
+      updateCatalogCountBadge();
+    }
+
+    function updateCatalogCountBadge() {
+      const badge = document.getElementById('catalogCountBadge');
+      if (badge) {
+        const total = Object.keys(CATALOG).length;
+        badge.innerText = `${total} Products (${customCatalog.length} Custom)`;
+      }
+    }
+
+    function updateCatalogSelect() {
+      const picker = document.getElementById('catalogPicker');
+      if (!picker) return;
+
+      let html = `
+        <option value="">⚡ Select Item From Catalog...</option>
+        <option value="__ADD_NEW__" style="font-weight:700; color:#1D4ED8; background:#EFF6FF;">➕ + Add New Product to Catalog...</option>
+      `;
+
+      // 1. Custom products optgroup at top if present
+      if (customCatalog.length > 0) {
+        html += `<optgroup label="⭐ My Custom Products (${customCatalog.length})">`;
+        customCatalog.forEach(p => {
+          html += `<option value="${p.id}">⭐ ${escapeHtml(p.name)} (₹ ${formatCurrency(p.rate)} | ${p.gst}% GST)</option>`;
+        });
+        html += `</optgroup>`;
+      }
+
+      // 2. Built-in products grouped by category
+      const categories = ["Computer Hardware", "CCTV & Security", "Networking", "Software & Antivirus", "Services & AMC"];
+      categories.forEach(cat => {
+        const itemsInCat = Object.values(BUILTIN_CATALOG).filter(item => item.category === cat);
+        if (itemsInCat.length > 0) {
+          html += `<optgroup label="${cat}">`;
+          itemsInCat.forEach(p => {
+            html += `<option value="${p.id}">${escapeHtml(p.name)} (₹ ${formatCurrency(p.rate)} | ${p.gst}% GST)</option>`;
+          });
+          html += `</optgroup>`;
+        }
+      });
+
+      // 3. Any extra custom categories
+      const extraCategories = [...new Set(customCatalog.map(p => p.category))].filter(c => !categories.includes(c) && c !== 'Custom Products');
+      extraCategories.forEach(cat => {
+        const itemsInCat = customCatalog.filter(p => p.category === cat);
+        if (itemsInCat.length > 0) {
+          html += `<optgroup label="${escapeHtml(cat)}">`;
+          itemsInCat.forEach(p => {
+            html += `<option value="${p.id}">${escapeHtml(p.name)} (₹ ${formatCurrency(p.rate)} | ${p.gst}% GST)</option>`;
+          });
+          html += `</optgroup>`;
+        }
+      });
+
+      picker.innerHTML = html;
+    }
+
+    function onCatalogSelectChange(val) {
+      if (val === '__ADD_NEW__') {
+        const picker = document.getElementById('catalogPicker');
+        if (picker) picker.value = "";
+        openAddProductModal();
+        return;
+      }
+      if (!val) return;
+      addItemFromCatalog(val);
+    }
+
+    function openAddProductModal(prefill = null) {
+      const modal = document.getElementById('addProductModal');
+      const title = document.getElementById('addProductModalTitle');
+      const editId = document.getElementById('prodEditId');
+      const nameInput = document.getElementById('prodName');
+      const catSelect = document.getElementById('prodCategory');
+      const customCatGroup = document.getElementById('customCategoryGroup');
+      const customCatInput = document.getElementById('prodCustomCategory');
+      const unitSelect = document.getElementById('prodUnit');
+      const rateInput = document.getElementById('prodRate');
+      const gstSelect = document.getElementById('prodGst');
+      const insertCheckbox = document.getElementById('prodInsertCurrent');
+
+      customCatGroup.style.display = 'none';
+      customCatInput.value = '';
+
+      if (prefill) {
+        editId.value = prefill.id || '';
+        title.innerText = prefill.id ? '✏️ Edit Catalog Product' : '💾 Save Line Item to Catalog';
+        nameInput.value = prefill.name || '';
+        rateInput.value = prefill.rate !== undefined ? prefill.rate : 0;
+        gstSelect.value = prefill.gst !== undefined ? String(prefill.gst) : '18';
+        unitSelect.value = prefill.unit || 'Pcs';
+        
+        const cat = prefill.category || 'Computer Hardware';
+        if ([...catSelect.options].some(o => o.value === cat)) {
+          catSelect.value = cat;
+        } else {
+          catSelect.value = '__OTHER__';
+          customCatGroup.style.display = 'block';
+          customCatInput.value = cat;
+        }
+        insertCheckbox.checked = false; // Already in quote or editing
+      } else {
+        editId.value = '';
+        title.innerText = '📦 Add New Product / Service';
+        nameInput.value = '';
+        catSelect.value = 'Computer Hardware';
+        unitSelect.value = 'Pcs';
+        rateInput.value = '';
+        gstSelect.value = '18';
+        insertCheckbox.checked = true;
+      }
+
+      modal.classList.add('active');
+      setTimeout(() => nameInput.focus(), 100);
+    }
+
+    function closeAddProductModal() {
+      document.getElementById('addProductModal').classList.remove('active');
+    }
+
+    function toggleCustomCategoryField(val) {
+      const customCatGroup = document.getElementById('customCategoryGroup');
+      if (customCatGroup) {
+        customCatGroup.style.display = val === '__OTHER__' ? 'block' : 'none';
+        if (val === '__OTHER__') {
+          document.getElementById('prodCustomCategory').focus();
+        }
+      }
+    }
+
+    function saveNewProduct() {
+      const editId = document.getElementById('prodEditId').value.trim();
+      const name = document.getElementById('prodName').value.trim();
+      if (!name) {
+        showToast("⚠️ Please enter a product or service name.", "warning");
+        document.getElementById('prodName').focus();
+        return;
+      }
+
+      const catSelectVal = document.getElementById('prodCategory').value;
+      let category = catSelectVal;
+      if (catSelectVal === '__OTHER__') {
+        category = document.getElementById('prodCustomCategory').value.trim() || 'Custom Products';
+      }
+
+      const unit = document.getElementById('prodUnit').value || 'Pcs';
+      const rate = parseFloat(document.getElementById('prodRate').value) || 0;
+      const gst = parseFloat(document.getElementById('prodGst').value) || 0;
+      const alsoInsert = document.getElementById('prodInsertCurrent').checked;
+
+      if (editId) {
+        // Update existing custom product
+        const idx = customCatalog.findIndex(p => p.id === editId);
+        if (idx >= 0) {
+          customCatalog[idx] = {
+            ...customCatalog[idx],
+            name,
+            category,
+            unit,
+            rate,
+            gst,
+            updatedAt: new Date().toISOString()
+          };
+          showToast(`✅ Updated product "${name}"!`, "success", 3000);
+        }
+      } else {
+        // Create new custom product
+        const newProd = {
+          id: `cust_${Date.now()}`,
+          name,
+          category,
+          unit,
+          rate,
+          gst,
+          createdAt: new Date().toISOString()
+        };
+        customCatalog.unshift(newProd);
+        showToast(`✅ Saved "${name}" to Product Catalog!`, "success", 3500);
+
+        if (alsoInsert) {
+          items.push({
+            name: newProd.name,
+            qty: 1,
+            unit: newProd.unit,
+            rate: newProd.rate,
+            gst: newProd.gst
+          });
+          renderTable();
+        }
+      }
+
+      localStorage.setItem('maruti_custom_catalog', JSON.stringify(customCatalog));
+      loadCustomCatalog();
+      closeAddProductModal();
+      
+      // If Manage modal is open, refresh its table
+      if (document.getElementById('manageCatalogModal').classList.contains('active')) {
+        renderCatalogManagementTable();
+      }
+    }
+
+    function saveRowItemToCatalog(index) {
+      if (!items[index]) return;
+      const rowItem = items[index];
+      if (!rowItem.name || !rowItem.name.trim()) {
+        showToast("⚠️ Please enter an item description first before saving.", "warning");
+        return;
+      }
+      openAddProductModal({
+        name: rowItem.name,
+        category: 'Computer Hardware',
+        unit: rowItem.unit || 'Pcs',
+        rate: rowItem.rate || 0,
+        gst: rowItem.gst !== undefined ? rowItem.gst : 18
+      });
+    }
+
+    function openManageCatalogModal() {
+      renderCatalogManagementTable();
+      document.getElementById('manageCatalogModal').classList.add('active');
+    }
+
+    function closeManageCatalogModal() {
+      document.getElementById('manageCatalogModal').classList.remove('active');
+    }
+
+    function renderCatalogManagementTable() {
+      const tbody = document.getElementById('catalogTableBody');
+      const search = (document.getElementById('catalogSearchInput')?.value || '').toLowerCase().trim();
+      const filter = document.getElementById('catalogCategoryFilter')?.value || 'ALL';
+      if (!tbody) return;
+
+      tbody.innerHTML = '';
+
+      const allItems = [
+        ...customCatalog.map(c => ({ ...c, isCustom: true })),
+        ...Object.values(BUILTIN_CATALOG).map(b => ({ ...b, isCustom: false }))
+      ];
+
+      const filtered = allItems.filter(item => {
+        if (filter === 'CUSTOM' && !item.isCustom) return false;
+        if (filter !== 'ALL' && filter !== 'CUSTOM' && item.category !== filter) return false;
+        if (search) {
+          const matchName = (item.name || '').toLowerCase().includes(search);
+          const matchCat = (item.category || '').toLowerCase().includes(search);
+          return matchName || matchCat;
+        }
+        return true;
+      });
+
+      updateCatalogCountBadge();
+
+      // Populate filter dropdown with all distinct categories
+      const catSelect = document.getElementById('catalogCategoryFilter');
+      if (catSelect && catSelect.options.length <= 2) {
+        const allCats = [...new Set(allItems.map(i => i.category))];
+        allCats.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.innerText = c;
+          catSelect.appendChild(opt);
+        });
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align:center; padding:24px; color:#64748B;">
+              No products found matching your search.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      filtered.forEach(prod => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid #E2E8F0';
+        tr.innerHTML = `
+          <td style="padding:8px 10px;">
+            <div style="font-weight:600; color:#1E293B;">${escapeHtml(prod.name)}</div>
+            ${prod.isCustom ? '<span class="badge" style="background:#DCFCE7; color:#166534; font-size:0.68rem; padding:1px 6px;">⭐ Custom Product</span>' : '<span class="badge" style="background:#F1F5F9; color:#475569; font-size:0.68rem; padding:1px 6px;">Built-in Catalog</span>'}
+          </td>
+          <td style="padding:8px 10px; color:#475569; font-size:0.75rem;">${escapeHtml(prod.category || '-')}</td>
+          <td style="padding:8px 10px; text-align:center;">${escapeHtml(prod.unit || 'Pcs')}</td>
+          <td style="padding:8px 10px; text-align:right; font-weight:700; font-variant-numeric:tabular-nums;">₹ ${formatCurrency(prod.rate || 0)}</td>
+          <td style="padding:8px 10px; text-align:center;">${prod.gst || 0}%</td>
+          <td style="padding:8px 10px; text-align:center; white-space:nowrap;">
+            <button class="btn btn-sm btn-primary" style="padding:3px 8px; font-size:0.72rem; margin-right:4px;" onclick="addItemFromCatalog('${prod.id}'); showToast('Added to quote!', 'info', 1500);" title="Add 1 to current quotation">➕ Quote</button>
+            ${prod.isCustom ? \`
+              <button class="btn btn-sm btn-outline" style="padding:3px 6px; font-size:0.72rem; margin-right:4px;" onclick="editCustomProduct('${prod.id}')" title="Edit product details">✏️</button>
+              <button class="btn btn-sm btn-danger" style="padding:3px 6px; font-size:0.72rem;" onclick="deleteCustomProduct('${prod.id}')" title="Delete product from catalog">&times;</button>
+            \` : ''}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterCatalogTable() {
+      renderCatalogManagementTable();
+    }
+
+    function editCustomProduct(id) {
+      const prod = customCatalog.find(p => p.id === id);
+      if (!prod) return;
+      openAddProductModal(prod);
+    }
+
+    function deleteCustomProduct(id) {
+      const prod = customCatalog.find(p => p.id === id);
+      const name = prod ? prod.name : 'this product';
+      if (!confirm(`Are you sure you want to remove "${name}" from your Product Catalog?`)) {
+        return;
+      }
+      customCatalog = customCatalog.filter(p => p.id !== id);
+      localStorage.setItem('maruti_custom_catalog', JSON.stringify(customCatalog));
+      loadCustomCatalog();
+      renderCatalogManagementTable();
+      showToast(`🗑️ Removed "${name}" from catalog.`, "info", 3000);
+    }
 
     let items = [];
     let currentScale = 1.0;
@@ -1432,6 +1883,7 @@
     // Initialize on Load
     window.addEventListener('DOMContentLoaded', () => {
       loadSettings();
+      loadCustomCatalog();
       initDates();
       updateSavedCount();
       
@@ -1628,6 +2080,7 @@
             <span class="item-card-number">Item #${i + 1}</span>
             <div class="item-card-actions">
               <span style="font-size:0.85rem; font-weight:800; color:#3F527D; font-variant-numeric:tabular-nums;">₹ ${formatCurrency(total)}</span>
+              <button class="btn btn-sm btn-outline" onclick="saveRowItemToCatalog(${i})" title="Save to Product Catalog" style="padding:2px 6px; font-size:0.7rem;">💾 Save</button>
               <button class="btn btn-sm btn-danger" onclick="removeItem(${i})" title="Remove item" style="padding:2px 8px; font-size:0.7rem;">&times; Delete</button>
             </div>
           </div>
@@ -1674,8 +2127,11 @@
           <!-- Desktop Cell Total -->
           <td class="desktop-cell-total" style="text-align:right; font-weight:700; white-space:nowrap; padding-top:10px; font-variant-numeric:tabular-nums;">₹&nbsp;${formatCurrency(total)}</td>
 
-          <!-- Desktop Cell Remove -->
-          <td class="desktop-cell-remove" style="text-align:center;"><button class="btn btn-sm btn-danger" onclick="removeItem(${i})">&times;</button></td>
+          <!-- Desktop Cell Actions -->
+          <td class="desktop-cell-remove" style="text-align:center; white-space:nowrap;">
+            <button class="btn btn-sm btn-outline" style="padding:2px 6px; font-size:0.72rem; margin-right:4px;" onclick="saveRowItemToCatalog(${i})" title="Save this item to Product Catalog">💾 Save</button>
+            <button class="btn btn-sm btn-danger" style="padding:2px 8px; font-size:0.72rem;" onclick="removeItem(${i})" title="Delete item">&times;</button>
+          </td>
         `;
         tbody.appendChild(tr);
       });
@@ -2315,6 +2771,7 @@
         version: "2.0",
         exportedAt: new Date().toISOString(),
         firmSettings: JSON.parse(localStorage.getItem('maruti_firm_settings') || '{}'),
+        customCatalog: JSON.parse(localStorage.getItem('maruti_custom_catalog') || '[]'),
         quotations: JSON.parse(localStorage.getItem('maruti_quotes') || '[]')
       };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -2341,6 +2798,10 @@
           if (imported.firmSettings && Object.keys(imported.firmSettings).length > 0) {
             localStorage.setItem('maruti_firm_settings', JSON.stringify(imported.firmSettings));
             loadSettings();
+          }
+          if (imported.customCatalog && Array.isArray(imported.customCatalog)) {
+            localStorage.setItem('maruti_custom_catalog', JSON.stringify(imported.customCatalog));
+            loadCustomCatalog();
           }
           const existing = JSON.parse(localStorage.getItem('maruti_quotes') || '[]');
           quotes.forEach(q => {

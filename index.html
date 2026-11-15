@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-  <title>Maruti Sales & Services — Offline Quotation Maker</title>
+  <title>Maruti Sales & Services — Quotation Maker & CRM</title>
+  
   <!-- Progressive Web App (PWA) Android & iOS Standalone Meta -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#3F527D">
@@ -13,10 +14,10 @@
   <meta name="apple-mobile-web-app-title" content="Maruti Quote">
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <!-- High Performance Preconnect & Deferred PDF Generation Engine -->
+  
+  <!-- Local / On-Demand Preconnect Only (No blocking or heavy head scripts) -->
   <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
   <style>
     :root {
       --primary: #BE9223;
@@ -85,27 +86,29 @@
       justify-content: center;
       gap: 6px;
       padding: 8px 14px;
-      border-radius: var(--radius);
-      font-size: 0.85rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
       border: 1px solid transparent;
       transition: all 0.2s ease;
-      text-decoration: none;
       white-space: nowrap;
+      text-decoration: none;
     }
-    .btn-primary { background-color: var(--primary); color: #fff; }
-    .btn-primary:hover { background-color: var(--primary-dark); }
-    .btn-secondary { background-color: var(--secondary); color: #fff; }
-    .btn-secondary:hover { background-color: var(--secondary-dark); }
-    .btn-success { background-color: var(--success); color: #fff; }
-    .btn-success:hover { background-color: #15803d; }
-    .btn-outline { background-color: transparent; border-color: var(--border); color: var(--text); }
-    .btn-outline:hover { background-color: #E2E8F0; }
-    .btn-danger { background-color: var(--danger); color: #fff; }
-    .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
+    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary-dark); }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: var(--secondary); color: #fff; }
+    .btn-secondary:hover { background: var(--secondary-dark); }
+    .btn-outline { background: transparent; border-color: var(--border); color: var(--text); }
+    .btn-outline:hover { background: #E2E8F0; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { opacity: 0.9; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { opacity: 0.9; }
+    .btn-warning { background: #D97706; color: #fff; }
+    .btn-sm { padding: 5px 10px; font-size: 0.76rem; }
 
-    /* View Switcher Bar (Tabs) */
+    /* Mode Switcher Bar */
     .view-switcher-bar {
       background: #FFFFFF;
       border-bottom: 1px solid var(--border);
@@ -113,291 +116,290 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 12px;
       flex-wrap: wrap;
-      gap: 10px;
     }
-    .tab-group { display: inline-flex; background: #E2E8F0; padding: 3px; border-radius: var(--radius); }
+    .tab-group { display: flex; gap: 6px; background: #E2E8F0; padding: 3px; border-radius: 8px; }
     .tab-btn {
       padding: 6px 14px;
-      border: none;
-      background: transparent;
       font-size: 0.8rem;
       font-weight: 600;
+      border: none;
+      background: transparent;
       color: var(--text-muted);
       border-radius: 6px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
     }
     .tab-btn.active {
       background: #FFFFFF;
       color: var(--secondary);
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
-    .action-buttons-grid {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
+    .action-buttons-grid { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
-    /* Toast Notifications */
-    .toast-container {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 99999;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      pointer-events: none;
-    }
-    .toast {
-      background: #1E293B;
-      color: #fff;
-      padding: 12px 18px;
-      border-radius: 8px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-      font-size: 0.85rem;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      pointer-events: auto;
-      transition: opacity 0.3s ease, transform 0.3s ease;
-      animation: slideInUp 0.3s ease;
-    }
-    .toast.toast-success { background: #15803D !important; }
-    .toast.toast-info { background: #1D4ED8 !important; }
-    .toast.toast-warning { background: #B45309 !important; }
-    @keyframes slideInUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Container & Layout */
+    /* Main Container */
     .container {
       max-width: 1400px;
       margin: 16px auto;
       padding: 0 16px;
-      transition: all 0.3s ease;
+      width: 100%;
     }
-
-    /* Workspace Modes */
-    .workspace-split {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      align-items: start;
-    }
-    .workspace-single {
-      display: block;
-    }
-
-    /* Grids */
-    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-    .grid-2 { grid-template-columns: 1fr; }
-    .grid-3 { grid-template-columns: 1fr; }
-    .grid-4 { grid-template-columns: 1fr; }
-
-    /* Responsive Breakpoints */
-    @media (min-width: 640px) {
-      .grid-2 { grid-template-columns: repeat(2, 1fr); }
-      .grid-3 { grid-template-columns: repeat(2, 1fr); }
-      .grid-4 { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (min-width: 960px) {
-      .grid-3 { grid-template-columns: repeat(3, 1fr); }
-      .grid-4 { grid-template-columns: repeat(4, 1fr); }
-    }
-    @media (max-width: 1100px) {
-      .split-btn { display: none !important; }
-      .workspace-split { grid-template-columns: 1fr; }
-    }
+    .workspace-single { width: 100%; }
 
     /* Cards */
     .card {
       background: var(--card-bg);
-      border-radius: var(--radius);
       border: 1px solid var(--border);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      border-radius: var(--radius);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
       margin-bottom: 16px;
       overflow: hidden;
     }
     .card-header {
-      padding: 10px 16px;
-      background: #F8FAFC;
+      padding: 12px 16px;
       border-bottom: 1px solid var(--border);
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.9rem;
+      color: var(--secondary);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      color: var(--secondary);
+      background: #F8FAFC;
     }
     .card-body { padding: 16px; }
 
-    /* Form Fields */
-    .form-group { margin-bottom: 12px; }
-    .form-label { display: block; font-size: 0.78rem; font-weight: 600; margin-bottom: 4px; color: var(--text-muted); }
+    /* Grids & Forms */
+    .grid { display: grid; gap: 14px; }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-label { font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
     .form-control {
-      width: 100%;
       padding: 8px 10px;
       border: 1px solid var(--border);
       border-radius: 6px;
       font-size: 0.85rem;
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      background: #fff;
+      transition: border-color 0.2s ease;
+      width: 100%;
+      background: #FFFFFF;
     }
     .form-control:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(190, 146, 35, 0.2);
+      border-color: var(--secondary);
+      box-shadow: 0 0 0 2px rgba(63, 82, 125, 0.15);
     }
 
-    /* Dynamic Coloured Status Badges */
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
     .status-badge-wrapper {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       padding: 3px 10px;
-      border-radius: 16px;
-      font-size: 0.74rem;
+      border-radius: 14px;
+      font-size: 0.75rem;
       font-weight: 700;
-      transition: all 0.2s ease;
     }
     .status-badge-draft { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
     .status-badge-confirmed { background: #DCFCE7; color: #166534; border: 1px solid #86EFAC; }
     .status-badge-sent { background: #E0E7FF; color: #3730A3; border: 1px solid #A5B4FC; }
     .status-badge-expired { background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
-
     .status-select-pill {
-      border: none;
       background: transparent;
-      font-size: 0.74rem;
+      border: none;
       font-weight: 700;
+      font-size: 0.75rem;
       color: inherit;
-      outline: none;
       cursor: pointer;
-      padding: 0;
+      outline: none;
     }
 
-    /* Table Container with Touch Scroll */
-    .table-container {
-      width: 100%;
-      max-width: 100%;
-      border-radius: 0 0 var(--radius) var(--radius);
+    /* Mobile Step Wizard Styles */
+    .wizard-stepper {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.82rem; }
+    .wizard-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+    .step-circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #E2E8F0;
+      color: #64748B;
+      font-weight: 700;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .step-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: #64748B;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .wizard-step.active .step-circle {
+      background: var(--primary);
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(190, 146, 35, 0.4);
+    }
+    .wizard-step.active .step-label {
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .wizard-step.completed .step-circle {
+      background: var(--secondary);
+      color: #FFFFFF;
+    }
+    .wizard-step.completed .step-label {
+      color: var(--secondary);
+    }
+    .step-connector {
+      flex: 1;
+      height: 2px;
+      background: #E2E8F0;
+      margin: 0 4px 14px 4px;
+      transition: all 0.2s ease;
+    }
+    .step-connector.completed {
+      background: var(--secondary);
+    }
+    .step-nav-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border);
+      gap: 10px;
+    }
+    .step-nav-footer .btn {
+      padding: 8px 16px;
+      font-size: 0.84rem;
+      font-weight: 600;
+    }
+
+    /* Tables */
+    .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; }
     th {
       background: #F8FAFC;
-      padding: 9px 10px;
-      font-weight: 600;
       color: var(--secondary);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 10px 12px;
       border-bottom: 2px solid var(--border);
-      white-space: nowrap;
+      text-align: left;
     }
-    td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-    tr:hover td { background-color: #F8FAFC; }
-
+    td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+      vertical-align: middle;
+    }
     .col-mobile-label { display: none; }
     .item-card-header { display: none; }
 
     /* Mobile Item Table to Stacked Cards (< 768px) */
     @media (max-width: 768px) {
-      .table-container {
-        overflow-x: visible;
-        padding: 8px 12px;
-      }
+      .wizard-stepper { display: flex; }
+      .wizard-step-panel { display: none; }
+      .wizard-step-panel.active { display: block; animation: fadeIn 0.2s ease-in-out; }
+      .step-nav-footer { display: flex; }
+
+      .table-container { overflow-x: visible; padding: 4px 8px; }
       #itemsTable, #itemsTable thead, #itemsTable tbody, #itemsTable th, #itemsTable td, #itemsTable tr {
         display: block;
         width: 100%;
       }
-      #itemsTable thead {
-        display: none !important; /* Hide wide table headers on phones */
-      }
-      #itemsTable tbody {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
+      #itemsTable thead { display: none !important; }
+      #itemsTable tbody { display: flex; flex-direction: column; gap: 12px; }
       #itemsTable tr {
         background: #FFFFFF;
-        border: 1px solid #CBD5E1;
-        border-radius: 10px;
-        padding: 12px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        box-sizing: border-box;
-      }
-      #itemsTable tr:hover td {
-        background: transparent;
-      }
-      #itemsTable td {
-        padding: 0;
-        border: none;
-        width: 100%;
-        display: block;
-      }
-      .col-mobile-label {
-        display: block !important;
-        font-size: 0.7rem;
-        font-weight: 700;
-        color: #64748B;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        margin-bottom: 3px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        padding: 12px 14px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
       }
       .item-card-header {
+        grid-column: 1 / -1;
         display: flex !important;
         justify-content: space-between;
         align-items: center;
         border-bottom: 1px solid #F1F5F9;
         padding-bottom: 8px;
-        margin-bottom: 4px;
+        margin-bottom: 2px;
       }
       .item-card-number {
-        background: #3F527D;
+        background: var(--secondary);
         color: #fff;
         font-size: 0.72rem;
         font-weight: 700;
         padding: 2px 8px;
         border-radius: 12px;
       }
-      .item-card-actions {
+      .item-card-actions { display: flex; align-items: center; gap: 8px; }
+      #itemsTable td {
+        border-bottom: none;
+        padding: 0;
         display: flex;
-        align-items: center;
-        gap: 8px;
+        flex-direction: column;
+        gap: 4px;
       }
-      .mobile-input-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
+      #itemsTable td:nth-child(2) { grid-column: 1 / -1; } /* Description full width */
+      .col-mobile-label {
+        display: block;
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.2px;
       }
-      .mobile-total-card {
-        background: #F8FAFC;
-        border: 1px solid #E2E8F0;
-        border-radius: 6px;
-        padding: 8px 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 4px;
-      }
-      .mobile-total-val {
-        font-size: 1.05rem;
-        font-weight: 800;
-        color: #1E293B;
-        font-variant-numeric: tabular-nums;
-      }
-      /* Hide desktop-only columns on mobile */
-      #itemsTable td.desktop-cell-num { display: none !important; }
-      #itemsTable td.desktop-cell-total { display: none !important; }
-      #itemsTable td.desktop-cell-remove { display: none !important; }
+      .desktop-cell-num, .desktop-cell-total, .desktop-cell-remove { display: none !important; }
     }
 
-    /* Sticky Totals Bar (Bottom Dock) */
+    @media (min-width: 769px) {
+      .wizard-stepper { display: none !important; }
+      .wizard-step-panel { display: block !important; }
+      .step-nav-footer { display: none !important; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Sticky Totals Bar */
     .sticky-totals-dock {
       position: fixed;
       bottom: 0;
@@ -421,61 +423,30 @@
       align-items: center;
       gap: 12px;
     }
-    .sticky-totals-left {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
+    .sticky-totals-left { display: flex; align-items: center; gap: 14px; }
     .sticky-items-pill {
-      background: #E0E7FF;
-      color: #3730A3;
-      padding: 3px 10px;
+      background: #F1F5F9;
+      color: #334155;
+      font-weight: 700;
+      font-size: 0.78rem;
+      padding: 4px 10px;
       border-radius: 12px;
-      font-size: 0.72rem;
-      font-weight: 700;
+      border: 1px solid #CBD5E1;
+      white-space: nowrap;
     }
-    .sticky-amount-group {
-      display: flex;
-      flex-direction: column;
-    }
-    .sticky-amount-label {
-      font-size: 0.68rem;
-      font-weight: 700;
-      color: #64748B;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
-    .sticky-amount-val {
-      font-size: 1.2rem;
-      font-weight: 800;
-      color: var(--secondary);
-      font-variant-numeric: tabular-nums;
-      line-height: 1.1;
-    }
-    .sticky-totals-actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
+    .sticky-amount-group { display: flex; flex-direction: column; }
+    .sticky-amount-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+    .sticky-amount-val { font-size: 1.25rem; font-weight: 800; color: var(--secondary); font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .sticky-totals-actions { display: flex; gap: 8px; align-items: center; }
+
     @media (max-width: 640px) {
-      .sticky-totals-dock {
-        padding: 8px 12px;
-      }
-      .sticky-totals-left {
-        gap: 8px;
-      }
-      .sticky-amount-val {
-        font-size: 1.05rem;
-      }
-      .sticky-totals-actions .btn {
-        padding: 6px 10px;
-        font-size: 0.75rem;
-      }
+      .sticky-totals-dock { padding: 8px 12px; }
+      .sticky-totals-left { gap: 8px; }
+      .sticky-amount-val { font-size: 1.05rem; }
+      .sticky-totals-actions .btn { padding: 6px 10px; font-size: 0.75rem; }
     }
     @media print {
-      .sticky-totals-dock {
-        display: none !important;
-      }
+      .sticky-totals-dock { display: none !important; }
     }
 
     /* Calculation Totals Summary Box */
@@ -496,144 +467,69 @@
       border-top: 2px solid var(--primary);
       margin-top: 8px;
       padding-top: 8px;
-      font-size: 1.1rem;
-      font-weight: 700;
+      font-size: 1.15rem;
+      font-weight: 800;
       color: var(--secondary);
     }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; }
-    .badge-info { background: #E0E7FF; color: #3730A3; }
-    .badge-success { background: #DCFCE7; color: #166534; }
 
-    /* On-Screen Document Preview Sheet Container */
-    .document-preview-pane {
-      background: #475569;
-      padding: 20px 12px;
-      border-radius: var(--radius);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      overflow-x: auto;
-      min-height: 500px;
-    }
+    /* Document Sheet (Printable Layout) */
     .doc-scale-wrapper {
-      transform-origin: top center;
-      transition: transform 0.2s ease;
-      width: 100%;
       display: flex;
       justify-content: center;
+      width: 100%;
+      background: #475569;
+      padding: 20px 0;
+      border-radius: var(--radius);
+      overflow-x: auto;
     }
     .invoice-sheet {
       background: #FFFFFF;
-      width: 100%;
-      max-width: 820px;
-      min-height: 1050px;
-      padding: 40px 40px 30px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-      color: #000;
-      border-radius: 2px;
-      margin: 0 auto;
+      width: 794px; /* A4 210mm at 96 DPI */
+      min-height: 1123px; /* A4 297mm */
+      padding: 32px 36px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      border-radius: 4px;
+      color: #1E293B;
+      transform-origin: top center;
+      box-sizing: border-box;
     }
 
-    /* Print View (Exact Maruti Letterhead Style) */
+    /* Strict Media Print Output (Native Vector PDF) */
     @media print {
-      @page {
-        size: A4 portrait;
-        margin: 8mm 10mm;
-      }
-      *, *::before, *::after {
-        box-shadow: none !important;
-        text-shadow: none !important;
-      }
-      html, body {
-        background: #ffffff !important;
-        color: #000000 !important;
-        padding: 0 !important;
+      body {
+        background: #FFFFFF !important;
+        padding-bottom: 0 !important;
         margin: 0 !important;
-        width: 100% !important;
-        height: auto !important;
-        min-height: auto !important;
-        overflow: visible !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
       }
-      /* Hide navigation header, switcher bar, controls, and form editor */
-      .no-print,
-      header,
-      .navbar,
-      .view-switcher-bar,
-      #editorPane,
-      .doc-controls,
-      .modal,
-      .split-btn {
+      .no-print, .navbar, .view-switcher-bar, .sticky-totals-dock, #editorPane, .doc-controls, #pwaInstallBanner {
         display: none !important;
       }
-      .print-only {
-        display: block !important;
-      }
-      /* Force Main & Preview containers to display cleanly in print */
-      #mainContainer,
-      #workspaceLayout {
-        display: block !important;
-        width: 100% !important;
+      .container {
         max-width: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
-        border: none !important;
       }
       #previewPane {
         display: block !important;
         width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        background: transparent !important;
-        border: none !important;
-      }
-      .document-preview-pane {
-        background: transparent !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        display: block !important;
-        min-height: auto !important;
-        overflow: visible !important;
       }
       .doc-scale-wrapper {
-        transform: none !important;
-        height: auto !important;
-        display: block !important;
-        margin: 0 !important;
+        background: transparent !important;
         padding: 0 !important;
-        overflow: visible !important;
       }
       .invoice-sheet {
-        display: block !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        min-height: auto !important;
         box-shadow: none !important;
-        border: none !important;
+        border-radius: 0 !important;
         padding: 0 !important;
-        margin: 0 !important;
-        transform: none !important;
-        page-break-after: avoid !important;
-        page-break-inside: avoid !important;
-      }
-      table {
-        border-collapse: collapse !important;
         width: 100% !important;
-        page-break-inside: auto !important;
+        min-height: auto !important;
+        transform: none !important;
       }
-      tr {
-        page-break-inside: avoid !important;
+      @page {
+        size: A4 portrait;
+        margin: 12mm 10mm;
       }
-      th {
-        background-color: #3F527D !important;
-        color: #ffffff !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-        border: 1px solid #3F527D !important;
-      }
-      td {
-        border: 1px solid #CBD5E1 !important;
+      * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
@@ -719,7 +615,7 @@
       <img src="data:image/png;base64,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" alt="Maruti Logo">
       <div>
         <div class="nav-title">MARUTI SALES & SERVICES</div>
-        <div class="nav-subtitle">(A Complete IT Solution) &bull; Standalone Edition</div>
+        <div class="nav-subtitle">(A Complete IT Solution) &bull; Quotation Maker</div>
       </div>
     </div>
     <div class="nav-actions">
@@ -770,12 +666,39 @@
       <!-- LEFT COLUMN: Form Editor -->
       <section id="editorPane">
         
-        <!-- Metadata & Client Grid -->
-        <div class="grid grid-2">
-          <!-- Quote Metadata Card -->
+        <!-- Mobile Step-by-Step Progress Bar (Shown on Mobile screens <= 768px) -->
+        <div class="wizard-stepper no-print" id="wizardStepper">
+          <div class="wizard-step active" id="wStep1" onclick="goToWizardStep(1)">
+            <span class="step-circle">1</span>
+            <span class="step-label">Quote</span>
+          </div>
+          <div class="step-connector" id="wConn1"></div>
+          <div class="wizard-step" id="wStep2" onclick="goToWizardStep(2)">
+            <span class="step-circle">2</span>
+            <span class="step-label">Client</span>
+          </div>
+          <div class="step-connector" id="wConn2"></div>
+          <div class="wizard-step" id="wStep3" onclick="goToWizardStep(3)">
+            <span class="step-circle">3</span>
+            <span class="step-label">Items</span>
+          </div>
+          <div class="step-connector" id="wConn3"></div>
+          <div class="wizard-step" id="wStep4" onclick="goToWizardStep(4)">
+            <span class="step-circle">4</span>
+            <span class="step-label">Terms</span>
+          </div>
+          <div class="step-connector" id="wConn4"></div>
+          <div class="wizard-step" id="wStep5" onclick="goToWizardStep(5)">
+            <span class="step-circle">5</span>
+            <span class="step-label">Finish</span>
+          </div>
+        </div>
+
+        <!-- STEP 1: Quotation Reference Panel -->
+        <div class="wizard-step-panel active" id="stepPanel1">
           <div class="card">
             <div class="card-header">
-              <span>📄 Quotation Reference</span>
+              <span>📄 Step 1: Quotation Reference</span>
               <div class="status-badge-wrapper status-badge-draft" id="statusBadgeWrapper">
                 <span style="font-size:0.7rem;">●</span>
                 <select id="quoteStatusSelect" class="status-select-pill" onchange="updateQuoteStatus(this.value)">
@@ -789,15 +712,19 @@
             <div class="card-body">
               <div class="grid grid-2">
                 <div class="form-group">
-                  <label class="form-label">Quotation Number</label>
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <label class="form-label">Quotation Number *</label>
+                    <button type="button" class="btn btn-sm btn-outline" style="font-size:0.7rem; padding:1px 6px;" onclick="assignNextSeqQuoteNumber()" title="Generate sequential quote number for current financial year">⚡ Auto Seq</button>
+                  </div>
                   <input type="text" id="quoteNumber" class="form-control" value="MSS/2026-27/0001" oninput="recalculate()">
+                  <span style="font-size:0.7rem; color:var(--text-muted);">Auto-increments sequentially per financial year</span>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Quotation Date</label>
                   <input type="date" id="quoteDate" class="form-control" onchange="recalculate()">
                 </div>
               </div>
-              <div class="grid grid-2">
+              <div class="grid grid-2" style="margin-top:14px;">
                 <div class="form-group">
                   <label class="form-label">Valid Until</label>
                   <input type="date" id="validUntil" class="form-control" onchange="recalculate()">
@@ -812,11 +739,17 @@
               </div>
             </div>
           </div>
+          <div class="step-nav-footer no-print">
+            <div></div>
+            <button class="btn btn-primary" onclick="goToWizardStep(2)">Next: Client Details &rarr;</button>
+          </div>
+        </div>
 
-          <!-- Client Details Card -->
+        <!-- STEP 2: Client / Customer Details Panel -->
+        <div class="wizard-step-panel" id="stepPanel2">
           <div class="card">
             <div class="card-header">
-              <span>🏢 Client / Customer Details</span>
+              <span>🏢 Step 2: Client / Customer Details</span>
               <button class="btn btn-sm btn-outline" onclick="loadSampleClient()">Demo Client</button>
             </div>
             <div class="card-body">
@@ -830,124 +763,200 @@
                   <input type="text" id="contactPerson" class="form-control" placeholder="e.g. Mr. Bikram Das" oninput="recalculate()">
                 </div>
               </div>
-              <div class="grid grid-3">
+              <div class="grid grid-3" style="margin-top:14px;">
                 <div class="form-group">
-                  <label class="form-label">Phone (WhatsApp)</label>
+                  <label class="form-label">Phone (WhatsApp) *</label>
                   <input type="text" id="clientPhone" class="form-control" placeholder="+91 98640 12345" oninput="recalculate()">
                 </div>
                 <div class="form-group">
-                  <label class="form-label">GSTIN (15 Digits)</label>
-                  <input type="text" id="clientGstin" class="form-control" placeholder="18AABCP1234M1Z5" onblur="validateGstin(this.value)">
+                  <label class="form-label">Client GSTIN (15 Digits)</label>
+                  <input type="text" id="clientGstin" class="form-control" placeholder="18AABCP1234M1Z5" maxlength="15" oninput="validateGstin(this.value)">
+                  <div id="clientGstinError" style="display:none; color:var(--danger); font-size:0.72rem; margin-top:3px; font-weight:600;"></div>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">State & Code</label>
+                  <label class="form-label">State &amp; Code</label>
                   <input type="text" id="clientState" class="form-control" value="Assam (18)" oninput="recalculate()">
                 </div>
               </div>
-              <div class="form-group" style="margin-bottom:0;">
+              <div class="form-group" style="margin-top:14px; margin-bottom:0;">
                 <label class="form-label">Billing Address</label>
                 <input type="text" id="clientAddress" class="form-control" placeholder="e.g. G.S. Road, Christian Basti, Guwahati - 781005" oninput="recalculate()">
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- Items Card -->
-        <div class="card">
-          <div class="card-header" style="flex-wrap: wrap; gap: 8px;">
-            <span>📦 Products & Services Catalog</span>
-            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; width:100%; max-width:480px; justify-content:flex-end;">
-              <select id="catalogPicker" class="form-control" style="flex:1 1 200px; min-width:180px;" onchange="addItemFromCatalog(this.value)">
-                <option value="">⚡ Quick Add Item From Catalog...</option>
-                <optgroup label="Computer Hardware">
-                  <option value="1">HP ProBook 440 G10 Laptop (₹ 62,500 | 18% GST)</option>
-                  <option value="2">Dell OptiPlex 7010 Desktop PC (₹ 48,000 | 18% GST)</option>
-                  <option value="3">HP LaserJet Pro M404dn Printer (₹ 24,500 | 18% GST)</option>
-                  <option value="4">Seagate IronWolf 4TB NAS HDD (₹ 9,200 | 18% GST)</option>
-                  <option value="5">Crucial 16GB DDR4 3200MHz RAM (₹ 3,400 | 18% GST)</option>
-                </optgroup>
-                <optgroup label="CCTV & Security">
-                  <option value="6">Hikvision 2MP IP Bullet Camera (₹ 2,400 | 18% GST)</option>
-                  <option value="7">Hikvision 2MP IP Dome Camera (₹ 2,200 | 18% GST)</option>
-                  <option value="8">CP Plus 8-Channel 4K NVR (₹ 7,500 | 18% GST)</option>
-                  <option value="9">Hikvision Cat6 UTP 305m Cable (₹ 7,800 | 18% GST)</option>
-                </optgroup>
-                <optgroup label="Networking">
-                  <option value="10">Cisco Catalyst 24-Port Switch (₹ 18,500 | 18% GST)</option>
-                  <option value="11">TP-Link Omada EAP610 Wi-Fi 6 AP (₹ 7,200 | 18% GST)</option>
-                  <option value="12">D-Link 9U Wall Mount Server Rack (₹ 4,800 | 18% GST)</option>
-                </optgroup>
-                <optgroup label="Software & Antivirus">
-                  <option value="13">Microsoft Windows 11 Pro 64-bit (₹ 12,500 | 18% GST)</option>
-                  <option value="14">Quick Heal Total Security 3-User (₹ 2,100 | 18% GST)</option>
-                </optgroup>
-                <optgroup label="Services & AMC">
-                  <option value="15">Annual Maintenance Contract (AMC) (₹ 18,000 | 18% GST)</option>
-                  <option value="16">CCTV Installation & Testing Service (₹ 3,500 | 18% GST)</option>
-                  <option value="17">Structured Cat6 LAN Cabling Point (₹ 450 | 18% GST)</option>
-                </optgroup>
-              </select>
-              <button class="btn btn-sm btn-primary" onclick="addNewBlankRow()">+ Blank Line</button>
-            </div>
-          </div>
-          <div class="card-body" style="padding:0;">
-            <div class="table-container">
-              <table id="itemsTable">
-                <thead>
-                  <tr>
-                    <th style="width:36px; text-align:center;">#</th>
-                    <th style="min-width:240px;">Item Description</th>
-                    <th style="width:75px; text-align:center;">Qty</th>
-                    <th style="width:75px; text-align:center;">Unit</th>
-                    <th style="width:125px; text-align:right;">Rate (₹)</th>
-                    <th style="width:85px; text-align:center;">GST %</th>
-                    <th style="width:130px; text-align:right;">Total (₹)</th>
-                    <th style="width:40px; text-align:center;">Del</th>
-                  </tr>
-                </thead>
-                <tbody id="itemsBody">
-                  <!-- Dynamic Rows -->
-                </tbody>
-              </table>
-            </div>
+          <div class="step-nav-footer no-print">
+            <button class="btn btn-outline" onclick="goToWizardStep(1)">&larr; Back: Reference</button>
+            <button class="btn btn-primary" onclick="goToWizardStep(3)">Next: Products &amp; Items &rarr;</button>
           </div>
         </div>
 
-        <!-- Terms & Totals Grid -->
-        <div class="grid grid-2">
-          <!-- Terms -->
+        <!-- STEP 3: Products & Services Catalog Panel -->
+        <div class="wizard-step-panel" id="stepPanel3">
           <div class="card">
-            <div class="card-header">Terms & Conditions</div>
-            <div class="card-body">
-              <textarea id="termsConditions" class="form-control" rows="5" oninput="recalculate()">1. Quotation validity: 15 days from the date of issue.
+            <div class="card-header" style="flex-wrap: wrap; gap: 8px;">
+              <span>📦 Step 3: Products &amp; Services Catalog</span>
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; width:100%; max-width:480px; justify-content:flex-end;">
+                <select id="catalogPicker" class="form-control" style="flex:1 1 200px; min-width:180px;" onchange="addItemFromCatalog(this.value)">
+                  <option value="">⚡ Quick Add Item From Catalog...</option>
+                  <optgroup label="Computer Hardware">
+                    <option value="1">HP ProBook 440 G10 Laptop (₹ 62,500 | 18% GST)</option>
+                    <option value="2">Dell OptiPlex 7010 Desktop PC (₹ 48,000 | 18% GST)</option>
+                    <option value="3">HP LaserJet Pro M404dn Printer (₹ 24,500 | 18% GST)</option>
+                    <option value="4">Seagate IronWolf 4TB NAS HDD (₹ 9,200 | 18% GST)</option>
+                    <option value="5">Crucial 16GB DDR4 3200MHz RAM (₹ 3,400 | 18% GST)</option>
+                  </optgroup>
+                  <optgroup label="CCTV &amp; Security">
+                    <option value="6">Hikvision 2MP IP Bullet Camera (₹ 2,400 | 18% GST)</option>
+                    <option value="7">Hikvision 2MP IP Dome Camera (₹ 2,200 | 18% GST)</option>
+                    <option value="8">CP Plus 8-Channel 4K NVR (₹ 7,500 | 18% GST)</option>
+                    <option value="9">Hikvision Cat6 UTP 305m Cable (₹ 7,800 | 18% GST)</option>
+                  </optgroup>
+                  <optgroup label="Networking">
+                    <option value="10">Cisco Catalyst 24-Port Switch (₹ 18,500 | 18% GST)</option>
+                    <option value="11">TP-Link Omada EAP610 Wi-Fi 6 AP (₹ 7,200 | 18% GST)</option>
+                    <option value="12">D-Link 9U Wall Mount Server Rack (₹ 4,800 | 18% GST)</option>
+                  </optgroup>
+                  <optgroup label="Software &amp; Antivirus">
+                    <option value="13">Microsoft Windows 11 Pro 64-bit (₹ 12,500 | 18% GST)</option>
+                    <option value="14">Quick Heal Total Security 3-User (₹ 2,100 | 18% GST)</option>
+                  </optgroup>
+                  <optgroup label="Services &amp; AMC">
+                    <option value="15">Annual Maintenance Contract (AMC) (₹ 18,000 | 18% GST)</option>
+                    <option value="16">CCTV Installation &amp; Testing Service (₹ 3,500 | 18% GST)</option>
+                    <option value="17">Structured Cat6 LAN Cabling Point (₹ 450 | 18% GST)</option>
+                  </optgroup>
+                </select>
+                <button class="btn btn-sm btn-primary" onclick="addNewBlankRow()">+ Blank Line</button>
+              </div>
+            </div>
+            <div class="card-body" style="padding:0;">
+              <div class="table-container">
+                <table id="itemsTable">
+                  <thead>
+                    <tr>
+                      <th style="width:36px; text-align:center;">#</th>
+                      <th style="min-width:240px;">Item Description</th>
+                      <th style="width:75px; text-align:center;">Qty</th>
+                      <th style="width:75px; text-align:center;">Unit</th>
+                      <th style="width:125px; text-align:right;">Rate (₹)</th>
+                      <th style="width:85px; text-align:center;">GST %</th>
+                      <th style="width:130px; text-align:right;">Total (₹)</th>
+                      <th style="width:40px; text-align:center;">Del</th>
+                    </tr>
+                  </thead>
+                  <tbody id="itemsBody">
+                    <!-- Dynamic Rows -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="step-nav-footer no-print">
+            <button class="btn btn-outline" onclick="goToWizardStep(2)">&larr; Back: Client Details</button>
+            <button class="btn btn-primary" onclick="goToWizardStep(4)">Next: Terms &amp; Signature &rarr;</button>
+          </div>
+        </div>
+
+        <!-- STEP 4: Terms, Signature & Tax Calculations Panel -->
+        <div class="wizard-step-panel" id="stepPanel4">
+          <div class="grid grid-2">
+            <!-- Terms Card -->
+            <div class="card">
+              <div class="card-header">📋 Terms &amp; Conditions</div>
+              <div class="card-body">
+                <textarea id="termsConditions" class="form-control" rows="5" oninput="recalculate()">1. Quotation validity: 15 days from the date of issue.
 2. Payment terms: 50% advance along with confirmed work order, balance upon delivery and installation.
 3. Warranty: Standard manufacturer warranty applies to all hardware products.
 4. Taxes: GST is extra as applicable at prevailing government rates.
 5. Delivery: Within 3 to 7 working days upon receipt of confirmed order.
 6. Jurisdiction: Subject to Guwahati jurisdiction.</textarea>
+
+                <!-- Show Signature Switch (Default OFF) -->
+                <div style="background:#F8FAFC; border:1px solid var(--border); border-radius:var(--radius); padding:10px 14px; margin-top:12px;">
+                  <label style="display:flex; align-items:center; gap:8px; font-weight:600; font-size:0.84rem; cursor:pointer;">
+                    <input type="checkbox" id="toggleSignatureSwitch" onchange="toggleSignature(this.checked)">
+                    Include Official Digital Stamp &amp; Authorized Signature
+                  </label>
+                  <div style="font-size:0.72rem; color:var(--text-muted); margin-left:24px; margin-top:2px;">
+                    Turn on to display digital signature &amp; stamp on the quotation. (Default: Off)
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Real-time Tax Totals Box -->
+            <div class="calc-box">
+              <div style="font-weight:700; color:var(--secondary); font-size:0.95rem; margin-bottom:10px; border-bottom:1px solid #FDE68A; padding-bottom:6px;">
+                Live Tax Breakdown &amp; Totals
+              </div>
+              <div class="calc-row" style="font-weight:600;"><span>Taxable Subtotal:</span><span id="taxableVal">₹ 0.00</span></div>
+              
+              <div id="intraTaxRows">
+                <div class="calc-row"><span>CGST (Central Tax):</span><span id="cgstVal">₹ 0.00</span></div>
+                <div class="calc-row"><span>SGST (Assam State Tax):</span><span id="sgstVal">₹ 0.00</span></div>
+              </div>
+              <div id="interTaxRow" style="display:none;">
+                <div class="calc-row"><span>IGST (Integrated Tax):</span><span id="igstVal">₹ 0.00</span></div>
+              </div>
+
+              <div class="calc-row"><span>Round Off:</span><span id="roundOffVal">₹ 0.00</span></div>
+              <div class="calc-row total"><span>Grand Total:</span><span id="grandTotalVal">₹ 0.00</span></div>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-top:8px; font-style:italic;" id="amountWordsVal">
+                Amount in words: Rupees Zero Only
+              </div>
             </div>
           </div>
+          <div class="step-nav-footer no-print">
+            <button class="btn btn-outline" onclick="goToWizardStep(3)">&larr; Back: Products &amp; Items</button>
+            <button class="btn btn-primary" onclick="goToWizardStep(5)">Next: Review &amp; Actions &rarr;</button>
+          </div>
+        </div>
 
-          <!-- Real-time Tax Totals Box -->
-          <div class="calc-box">
-            <div style="font-weight:700; color:var(--secondary); font-size:0.95rem; margin-bottom:10px; border-bottom:1px solid #FDE68A; padding-bottom:6px;">
-              Live Tax Breakdown & Totals
+        <!-- STEP 5: Review, Save & Share Panel -->
+        <div class="wizard-step-panel" id="stepPanel5">
+          <div class="card" style="border: 2px solid var(--primary);">
+            <div class="card-header" style="background:#FFFBEB; color:#92400E; font-weight:800;">
+              <span>🎉 Step 5: Review, Save &amp; Final Actions</span>
             </div>
-            <div class="calc-row" style="font-weight:600;"><span>Taxable Subtotal:</span><span id="taxableVal">₹ 0.00</span></div>
-            
-            <div id="intraTaxRows">
-              <div class="calc-row"><span>CGST (Central Tax):</span><span id="cgstVal">₹ 0.00</span></div>
-              <div class="calc-row"><span>SGST (Assam State Tax):</span><span id="sgstVal">₹ 0.00</span></div>
-            </div>
-            <div id="interTaxRow" style="display:none;">
-              <div class="calc-row"><span>IGST (Integrated Tax):</span><span id="igstVal">₹ 0.00</span></div>
-            </div>
+            <div class="card-body">
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:16px; background:#F8FAFC; padding:12px; border-radius:6px; border:1px solid #CBD5E1;">
+                <div>
+                  <div style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Quote Number</div>
+                  <div style="font-size:1.05rem; font-weight:800; color:var(--secondary);" id="reviewQuoteNo">MSS/2026-27/0001</div>
+                </div>
+                <div>
+                  <div style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Customer</div>
+                  <div style="font-size:1.05rem; font-weight:800; color:var(--text);" id="reviewClientName">Valued Customer</div>
+                </div>
+                <div>
+                  <div style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Grand Total (Incl. GST)</div>
+                  <div style="font-size:1.25rem; font-weight:800; color:var(--success);" id="reviewGrandTotal">₹ 0.00</div>
+                </div>
+              </div>
 
-            <div class="calc-row"><span>Round Off:</span><span id="roundOffVal">₹ 0.00</span></div>
-            <div class="calc-row total"><span>Grand Total:</span><span id="grandTotalVal">₹ 0.00</span></div>
-            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:8px; font-style:italic;" id="amountWordsVal">
-              Amount in words: Rupees Zero Only
+              <div style="font-weight:700; color:var(--secondary); margin-bottom:8px; font-size:0.88rem;">Choose an Action:</div>
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
+                <button class="btn btn-primary" style="padding:12px; font-size:0.92rem;" onclick="saveQuotationToStorage()">
+                  💾 Save Quotation
+                </button>
+                <button class="btn btn-secondary" style="padding:12px; font-size:0.92rem;" onclick="printQuotation()">
+                  🖨️ Print / Save as PDF
+                </button>
+                <button class="btn btn-success" style="padding:12px; font-size:0.92rem;" onclick="shareWhatsAppWithPdf()">
+                  💬 Send on WhatsApp
+                </button>
+                <button class="btn btn-outline" style="padding:12px; font-size:0.92rem;" onclick="downloadQuotationPdf()">
+                  📥 Direct Download PDF
+                </button>
+                <button class="btn btn-outline" style="padding:12px; font-size:0.92rem;" onclick="switchView('preview')">
+                  👁️ View Full Document Sheet
+                </button>
+              </div>
             </div>
+          </div>
+          <div class="step-nav-footer no-print">
+            <button class="btn btn-outline" onclick="goToWizardStep(4)">&larr; Back to Terms</button>
+            <button class="btn btn-secondary" onclick="goToWizardStep(1)">✏️ Edit from Step 1</button>
           </div>
         </div>
 
@@ -978,7 +987,7 @@
                     <h1 style="font-size:1.35rem; color:#3F527D; font-weight:800; margin-bottom:2px;" id="p_firmName">MARUTI SALES & SERVICES</h1>
                     <div style="font-size:0.8rem; font-weight:600; color:#BE9223; margin-bottom:4px;" id="p_tagline">(A Complete IT Solution)</div>
                     <div style="font-size:0.72rem; color:#333; line-height:1.3;" id="p_address">
-                      Mahabir Market, Ground Floor, opp. Hotel Siroy Lily, Solapara Road, Paltan Bazar, Guwahati - 781008, Assam
+                      Mahabir Market, Ground Floor, Christian Basti, G.S. Road, Guwahati – 781005 (Assam)
                     </div>
                     <div style="font-size:0.72rem; color:#333;">
                       Phone: <span id="p_phone">+91 70022 53021</span> | Email: <span id="p_email">smarutisales@gmail.com</span> | GSTIN: <strong id="p_gstin">18ABGFM5224K1Z2</strong>
@@ -1004,7 +1013,7 @@
                 </div>
                 <div style="text-align:right;">
                   <div>Client GSTIN: <strong id="p_clientGstin">Unregistered</strong></div>
-                  <div>State & Code: <span id="p_clientState">Assam (18)</span></div>
+                  <div>State &amp; Code: <span id="p_clientState">Assam (18)</span></div>
                   <div>Phone: <span id="p_clientPhone">-</span></div>
                 </div>
               </div>
@@ -1034,14 +1043,14 @@
                     <strong>Amount in Words:</strong><br>
                     <span id="p_amountWords" style="font-weight:700; color:#1E293B; font-style:italic;">Rupees Zero Only</span>
                   </div>
-                  <div style="border:1px solid #CBD5E1; padding:8px 10px; border-radius:4px; background:#F8FAFC; margin-bottom:8px;">
+                  <div style="border:1px solid #CBD5E1; padding:8px 10px; border-radius:4px; background:#F8FAFC; margin-bottom:8px;" id="p_bankBox">
                     <strong style="color:#3F527D;">Bank Remittance Details:</strong><br>
                     Bank: <span id="p_bankName">State Bank of India</span> | Branch: <span id="p_bankBranch">G.S. Road, Guwahati</span><br>
                     A/C Name: <span id="p_bankAcName">MARUTI SALES & SERVICES</span><br>
-                    A/C No: <strong id="p_bankAcNo">38472910482</strong> | IFSC: <strong id="p_bankIfsc">SBIN0003295</strong>
+                    A/C No: <strong id="p_bankAcNo">-</strong> | IFSC: <strong id="p_bankIfsc">-</strong>
                   </div>
                   <div>
-                    <strong style="color:#3F527D;">Terms & Conditions:</strong>
+                    <strong style="color:#3F527D;">Terms &amp; Conditions:</strong>
                     <pre id="p_terms" style="font-family:inherit; white-space:pre-wrap; font-size:0.68rem; color:#475569; margin-top:2px;"></pre>
                   </div>
                 </div>
@@ -1073,12 +1082,13 @@
                     </tr>
                   </table>
                   
-                  <!-- Authorized Signature Block -->
+                  <!-- Authorized Signature Block (Controlled by Switch - Default Off) -->
                   <div style="margin-top:20px; text-align:right; font-size:0.75rem;">
                     <p style="font-size:0.8rem; font-weight:700; color:#3F527D;">For <strong>MARUTI SALES & SERVICES</strong></p>
-                    <div style="margin:4px 0 2px 0;">
+                    <div id="p_signatureImgBlock" style="margin:4px 0 2px 0; display:none;">
                       <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANgAAACBCAMAAACVf4TgAAABgFBMVEUIAxdTg9oLRKarw+5HRVaNjKFKZaALJF8rX7eRqNNnZXpym+QuKDnT4/isr8RvhLspRopHabUFJH3ExdSit9puiNFLc8AmTaIKNIaRq+U5YbNle7hxkNAEE1lHUoFYeL6OoN3H1PEhPH0UEikcUrBqc5YpVay80/fs8fs4Z8t+lNaDp+YzNVEGNJ6er+UZRZy4xuDV3fOtvepRVW1YetA2V6eTnbeBnddkj95VbLUhJEDj7/soTpIYTLBhhM6DkbQuO20EF3wgLFwGCzYcFCdcb55KXIyzus5dW3AEGlQpYMlbZIOChZg4Rnb8/vwWCxuhqcNlbZh2dIcUMmw+Ok9VXIBIS2kPFDhlfNGdnrBKdtE6a7nf5/g8UYlAPmShueswLUpHbMe4ye8oWb87bsyBnuZih90hM2haZ5pqbYMPPI0sZ84UJllNS1uOlbAFLIjFzerL2/Rpe58MPKEfGzOhr8x4fJYUHUMYHkxxkt4dPZEaVcN/iKt8itp0fKxUVnzhDbuDAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAVzUlEQVR42u2bjV/TyNaAKVGklIDVtnRKXpMoNtMG0yYGUgwEV4VyQUbWRS1lNDSQKnWFREA3Ynf/9fckBcX91lt3vfwYJUBbmvPMOXO+ZtpDTunoOQM7AzsDOwM7AzsDOwM7AzsDOwM7AzsDOwM7AzsDOwM7A/usYZqsxzCajTrDthmGsRlH9Ck2zf89MExVB1jkIBaLbS0ebi6+LCxubW29XCxsvXy5uHi4uPiyXq/HKrLtSCrF/wtgGFNR4fhcfmzmsP8lyJ5IyAhUJImiL0qeJEkOY9uynEhU6i/D0b9ZsIyUo9JvGYzVEqOZ5Ho+35+JVUBaif1jcwNLZFmJQQkrs57bzOWSvOx0W3fdAMOibViFmZn+jBW3HZHFf1tGbLKSpqQzufxmpmkwKv6GwFTGWN88XCzEEoz/+7PeeZBqitj5/beGZ6oM4vRC/qUFmvsWwLCI+In82FZgS79hwtKRiKod/SDoFqIhJYv83/ehPiNb/WP9Vsr/l8HUeCY/k7OQRz84D0I8r0OIfaRRjB2HMrVQU9gIHMmkiiFKgcc6PrzA/61+sRSsz7TyPPL/NTBqW5ubdY5hT0jnIBO7LhidQ0UDuU3EMs2mZqcjE/SQJlI7nXaR66C6JTF6HZk+YjAx8UmjNR05WWqNWd6/AYbL3Hp+k3PMD2sk+qZsSbgZUMbSbTvQ0tNFVtabiHHZaCZ8xkVFTXJdJMmFgi0HQSChrS2HqWisFCkVcSiaA+xwub2xooj/YTD2IFnKW7Z69BsYInWoo1AiFSrMeox1EpmizYhzzy0J6QFyXCmU0LGZNEBpCLl2c6shI0YKbFRflxO6IyViDiFiM4hZ7JFBMFZ+htfwPwhGUa4EyvpwS63omKZtp5smUetbW4sx0EwzsG3p+2ULFNe0WdkWYRKcIC1IWrqpOQjpjZgNwVuWK/UtOWCwmCggeKcEy8Q+Lq4yXyplmH8KjHUbY+vxD3enKpaSDZdxgwAkMxOxl3VXYhJN13HYN48VkWVsFlIszw89qKNizDjUpD6SGYmzbMmu1HUZsdSNFWxC3EKQsE1qH08alriRki7+E2Cm0t+bsSNrEcPb00TDlpoychPpwMYEMzZifJYyUaSdXD34VSj75K0QYxJTsh1fwmzQqIsEF4NmzDTlJv+RxeH38nHzq4MxyZkCOrqNlhlGVIptxiTEMMiWXQWEN08CrAwu+Caloq+qvuSIouh5HvwiiizLhmo7IS94TExUmfUTvm37CYfY8NWZESazl/yipfb3wShXGjOO17ap8rkYkiqbOdvWA8ZUfXoiT6Igvv39g/2lolB0FU2zFaQoSBDgqsgCfEEJAwWAzQA5/mjWBNuMjHybZROHFYxNx4C1SY3SDc78imB2rjcmwfeUiwmqcz5CTGDHFguyLx9rEVaTCBWLIIDstvL9xv5NRRShMukMGv4L/7NUFCUJzNYNQjzF9j7kYthkKgmHtetjFUhD8slotpjc7pT4tcBMrvcwhQnoxZixzdjhmMwgqZhwm65/xOSEKgl1YmsRDKk+XBhQ/6LKodSHJBj+UNG8Dhx2JOJXFg/BaVot4yjF4W+MMF8HTM3srcOk0YxlMr06K2+OWbarORI1IyhJKabboXAnC8fLK5M3q38zxxed0FgZ8QjOrsfkhGTH2OMXGHsXU18DjOnfq4RWgTO9Cbu/37ELh1tQ/kb3VDUkC8j2flNyVKvqwPnPKbxFDeA0tRP1pUQiUf74LGpl7e6DpcbGUEdsZqYX6vsEE6tH64plwDkI4Nx/z22tXCbnt9XPS9VUT0EOGy1Ze71ytHRpFYxFK02L3QZTevud4zvrvb2HTVfyw4grGbV0Ufuj4hAD2OWFy5+dhqoSigVg474sMw5ECG9l4daS4puolPO7C5Yq5T+uXHvxZd0OVwKrGIGh/YlC8JpH6K9tEYI4jnwGpSo9GhAcop9VCHRiGPNQfcuqBK6ctob5+avPl39ZmkvmLLn/Eo+7CebMjEknUqoAQWTFvqzr8lH2jY/Ejbw5jEhwTIe2h6g6cG4oFJkNxQa5NS+MaRAMtOiieaASCNnAA3CqKnYIw6jueH4Y2ON9F69X4c2goH3Z+90u6iKY2j/GhCsb7uyDBFrgOozC5Ur5CkQgFEZcxnM0TVGEMAAj8Pea5miMo/38aMUT328MlEUVRFTZSHCRhhcx0lcnuv2pWQ4Nzx47EEhBbnw34XcNDFu9yExZOp/J6DBq9alYE36Z0jm3aISBGLhA0ihfiixJDEUOhV45DxZLtwe+uIeBvdnXcfWoBeGxxKxc+i7RNbBUb38idqgn4hB4GVjMjhNmfSo1TTOc7j+Z8OpKeF1b+DO/iD90FAiNrp0vDO6Q7jx6OuxDocbbBHMze30OMa3vcrRLYGbfbu9ijPmCVA2vDIVSXl5Y64hMj7uiVNOOuzxCETJnDNELE6+mcxphBZWoDPEEjK//+PzqAUnNrFs2LPPNzUujkPds7pa7BJZq7fbb5idpECZmuMBDEaOmEySIviiCx+iYjyGokfTOThWDd8EDz34O225esSh0XiHUaoLZSSdq6bpCvLYCr9MsFGRU1XKIp5FyX/znH1+LwwaJN0LHZZRsqTQBf+7uprsDhpOX1n1YtylwhLYMCY7ThMBsGuuZmE1YziYqolTQkw2BMpHc3lQj1waxlVzt57KqAOP9/YGwchMET9A6atKUTndHTdumIGAniv2eQ2hTMzmGMBo5uHNx+apHnCFiZ8KsKj7DkHgcXua0XuCugJVbJXCJ0gg4RtrfC4IJN3IsoY0ZvVDw/QYiji5hv5gr+sRuqlHzUEOh2MXsuyseDZW3snE+0pMWyh51t0TGVY/ACBWJEwVJMSw0GSIoxEbO/I+zk7lyaA7lQmh7fj/fyRppfoJ2BczIcjBDUmvXJc7eHiRrxm5JIiykwnbeFjOIeA2g9ZoepDztCKxNMURtzO1duqJSAR6//CyK0Yp97CoYIVA6qW5RD723GPVTRYfaLgUq0+hbujpvsn3xiDcP4RLetjQR6RVnptVugOG5Vjhh4vRuk9h7vSAbl+1NQY7PESmH/DoiYhIe9NphLhe1RbV2ZGVUqC3PAxjoSF2IHL7XPs7KlInGUdLn1GtA5us6okSs6AUDEyngnv6SinOYJiMwPz+zFU6JUWrFI7DuaIxOj4UmII7sZsyDG6Axk58ZS8BVN+2cw/IuETOgMTEAzTDRwqHFthd1srSpJUrb8CR+uHo/fEZpdwp82h5riB3zgxWbZokaS8MzXuA20pikrl5YLsO8UDMjRBorHNXsaC9EwhPdAVNb66Ew/shuvyj37smgq1ghZmIrX1m3TFM3iKrDfPqhNrwjj1AMNee53s8vwK2E7uL+4M+h+WAlQiZagFwhcDtm6QcC8VGkURs7Vqr84sIuJISqS7EeB39L/HqoaEfGxGpBbedfTHbFefilKO30+7P9qDJ2CJZXR4kkS7hWvmRhbBWJCg6EiGktnP1OT1otFinR0tr1F9SMwNYeH2X4ioDDhYWw13zpRrUyvDAw1SiciOBl+668n+y7UQlNQCVNRBiLqjEm8ooO4fag0kTZ4a64e3X6CGzsZR3KMHCCDTuRk7CVs42c2AEzQucBd2dqTlQtglQaViambr9gO2BDz6phMQJ6CJ0kbsNMuIdC5BUV4rvUdyMwWYzfeaSSBNgFPCOSYtq38pQtcD7FzN6UkR8RCe27pHQFzJzvj8xkemurdzO2JRNmpD8PAYDLmLC4cNoifgbAxBq4GCcEw5qCzTYyhYm+588cUwiL3qHxnbAtr2EvtEUc+k33MDRFmg580KIP4Qv+/MWLF7dnoSwaA9FVcEFMYXMvAz7kxkxSNK3WbgkmxLj0zu9OgOZLYeAvj8Uq2bzc4IiQLYF7womMyfKKOZxkxWQEBsJ4kcYma065ptC0IH5/R6HFUbC2g8FfqpQotaLejvx6URDqh3r4o63XAojLxTTy8c7yjreSCv1p1DTG4bMc5AbacC2g4IwgcmN77/9quDtgs9nZKJhkKq1+G6KXVZLtvGUaSYr5wDRGuOEZ8MLqFFgWo4d2x0xNTdU8WtTwz3cEUNyUS52Ne480WHqNZsfLq6gtaJGHxJ4WKoCyqrMzW/0rkak88927z9hb+lOwajbMPPx8xmhNM1u8nyyYmM/5RoNiy8JerlQK29G0HZqPEO0EpWrDGsYiZb9/4WHVVhzTvL/xPvTUIv3Dfre3E6d/0ejxUf3w0ndp3CUwOn8pqRI2aTHrlp9w/QBWdsqg0oEZJUhivLPzGLYKjkvGo9pRfDj0QeyFoT+VQHz/AvLME3V4eIEazylD+RpHAmdZfCO3Htu6NPI5raE/z+7j2Szvm5Jv+ixhzU5v/m/VMNXtckdOUNXCw8vHDQ41bGxAURddoO7WDnauX7k931bClqkT1eGKogl6Tk8bXE0f5fkaz1tprpiSnMMbRveaObTvQrY/7v9RIwpjM+p0hG0Dx5O8MlPWtKpWTa3Mrb42BCNuuHFhePDB+It20RVgFNvtdrrdLoYdBIAxRm/fefR+RdPKTthsVVUvbH0ohZmaA1PhRw2Qo3oWPCOHuwcGBdmlbCnHpRgG/msphBBYBwy4uMUgaNZ0vQaXml5vNPRarfZ0+fmdH396e/duz5M783qTb+j8s7s95+IaKEk9Hsf9Dqy+fzT569VFReVoC/R4xyWaw8ru6OftufxVM4fLljLJXK6Ry+XWC4VGI9No8PVC6cbeYcV1ZSTI4eEvsCkNRPed4pWfnmw8Ht+/d+/e/r3nL15fefZseaNn8A8W2eWdHe9XTUWwxqMmPtvcLEgnxMix3e0Em6OtDOM7TMoGO3NgSXMWw4pyfeYw4fz6VnTy0bnHS5OidzD7y61bD3oePHjQc29148Hg77bw6dqboZNKoJ7QFo7OVohFZMcgQh+rk9ud+NwDEn/ZV2T5q6MnzMXPTafhHiYjV6zAFj8xpJ1718a3V0SxurI9Pnhu9d69wQc94ws3z22s/c76vHz/vHdCVY7SHhaitjKkXxgFlURlcT2sZMJnud3cZ5+O+OtOMPu6dWLjzUhyyU44oQyX0ZtF9PF4V/Xm4OC5haWbr16N31qYXXi1vbAKD6x52+fxb9X1cAUfb0Y4GhKUqnfkzMttxZNF3w1icizaIPP5bEYl3QcDnV3kj9/YeZq0+Sn2wzyjdC2jp4s2E60Mv7oytDI0VPUOFt5sL02+Xprc2V8VydrDX4Hh6vb1MkQrT1OK4TZh+Wj/KEymsKbZbkUjqBnUD8ERYiXfa3zBXu3f2W1Rp7J9WufG3Lvp3NNGkIIs/njHz0OBPpVL6i5Cmt/ZKSHezdWbs+9fpMydW2CHQ59uANLq9vj4nKK0R/kapFfHe2qeg0k56RCNUldvMglLUqBU89N7E9pX21z3R7OtYmgVal8a7SAuV+KkAEnHTstUHU0oFtOjYThNF+PoYO7eteVHt5eYycfjg+Oz58+t+aoHjhNi1+zs9Surz65cnxVSQ9qHTTXVwWKgM8SDpJrRTBQk9LGwZjOhXEmr5KuBERyf2E1CcaIaYZeCy7dyAR8kP42YpqmKjAKAXHpu49qTtxvL8+duvd1/0HNrfH+5FrT1WrGdTk89/+nKjverpr1anCr7QSHAYU+IDWRdoJoCaZbd2MtIX9gh/7ub695cq2RERxhwHGqXXEYPposSivskbHYT02H8j/mIMr5x7nrKn7w9vnrt9tLqxuC2p4ZnIDAuf/94Vv20/xq9eyBibqYhEhwoxG4kpajCtvZG5C8+dPS3Tw2Y8enshBFmV/HWDyU+aQS6gwq9nBNwUNw76/n6x6Xwfn91Eubg4ObN8Wcp//Xq+OSx33zz5vKJ/B4rTucYBbYpCZrNAN68DT6JDbcV+ZkRTiXkq4OBR+TeZXOQOLJyJmMlZd5imiMtKxhpwQTb+XqjeXxmtrzx4A1wqY/GN1bj7MGV/f37HYvbGdihnaYpiU6WsbzhOCGmCgUaatYhINPO+TeNL5WGRUL+EbDwOE6rtW5ILGUZ5GRymdIPpXBTqU8iaCy3WfORjqifUuau7YOKzIf798YPTJmfv9YzEAbe6tKjAwx+grJ6sqgSVGiKacNBkD4TEQoXT08ebeyp8WTpIs8Q8o+BETO1XsqWhsPtFzNlWNPZET0pBzxL5NJIyWLqN/KMnRuZWv5p3jHvX+t5cB8simEGewbLuDq3fHuUkcREoeJAWWKbaDNvI9dJMJRCmUqjE2ehssrpiVJOEAn5J8HCXOp1K1uaQ364jcWAC9TtdBGbw/3NfLKZz5ZsqV5z5u5czXC3enpeqaTKmeU7PQ+uF5dvP83nC66UOFy0XWTLUrA4g2zdTXsnqmqqFZMTI7zWhRPPn38Q05SMuVarn4+Hp2YxlKCaQ8xMawyqgFa2N8Hpkjl/4flz4FqF5FexWOZ5T8/b57cNq3c3m/Bjh4c2siXX1mdmZN9AH08+qlo69640qnhdOaT+RUdnzSo3kc3mM7OMf7QHmeL7KozRyrY2W3kUf/7jhZ6enmvXYeLLScO+2NNz90JOsku9e7K/1QuKYqjka1yc/eAfqSOMTpQmeKPcraP3X3rYmU1lplvZ7DQfd47OHZmYNTgjSOaTF2/9ePfukyeP+QN4fHj66n/uXHn6ro/1XTfhY7sps58c/4OkTCn2jbzL8wcq6d748uPp2Ge43MXd1sXcqMH4EKbNSHesbz+6cuXt40c3UzvF0JM/vXulisWUeNzw+aQGEzWDz41MT2SKB2p3PwPy331SgnoHw7kfLmVb0+tzlhF3oiSYXXp0s+/90gGhYRWwMn+f/l5DTdQQx6/nRzaTfDEldv9DSf/9Z1uoFuf46dbuhZCvL2kZc7fe3tl+NF82TShD3jwepuToSA6lVBTLKcEoWnwuPzOTL6SN407ANwgWeRM/FR/OzE+3frh04dKTnp4nb5/8+LRvdO7F8/9ceDrKDY+Ojtb4ZN/ExPQIjHwul+G5uCZR8vVG9z4/hk0qluOz3Nzbno23T35YvvjDf+7evXDnajb7Q6v1rjQ9PT0xMTVXm7U90adf7wNx3Qc75ksNrr5ful/2mfm7t2dTWjUFQyuL0bmXr47z1cBA8p1rq9uTsKYmH78Wyb83uq4xc6nn2htK2DcLkyY5TWDsq55VkZQHBqqEnCqw8uCDNXxw841KThnY+Z5X5Z2FNZOcMjB14dXDhX/bDL+GV5xcGHi1fZmcOrChm+fO3afk1IFVX+2fW8Pk1IFdfnXvZpWQUwcGXAMqOX1gwPWQktMHJr7av4/J6QNTFwbXviGuroGpA6tDhJw+MOBaI6cQjA4MfmNc3QEDrm/Jb3QNDL/59ri6AYbPD74xyekDw+fHv6G43EWwtcEBn5xCMPrwoUpOIxihmJxOsG90nIGdgZ2BnYGdgZ2BnYGdgZ2BnYGdgZ2BfePj/wEFZWXC5DV5DwAAAABJRU5ErkJggg==" style="max-height:55px; max-width:130px; object-fit:contain;" alt="Authorized Stamp & Signature">
                     </div>
+                    <div id="p_signatureSpace" style="height:45px; display:block;"></div>
                     <p style="font-weight:700; border-top:1px solid #374151; display:inline-block; padding-top:2px; min-width:140px;">Authorized Signatory</p>
                   </div>
                 </div>
@@ -1128,19 +1138,19 @@
         </div>
         <div class="form-group">
           <label class="form-label">Address</label>
-          <input type="text" id="s_address" class="form-control" value="Mahabir Market, Ground Floor, opp. Hotel Siroy Lily, Solapara Road, Paltan Bazar, Guwahati - 781008, Assam">
+          <input type="text" id="s_address" class="form-control" value="Mahabir Market, Ground Floor, Christian Basti, G.S. Road, Guwahati – 781005 (Assam)">
         </div>
         <div class="grid grid-3">
           <div class="form-group"><label class="form-label">Phone</label><input type="text" id="s_phone" class="form-control" value="+91 70022 53021"></div>
           <div class="form-group"><label class="form-label">Email</label><input type="text" id="s_email" class="form-control" value="smarutisales@gmail.com"></div>
           <div class="form-group"><label class="form-label">GSTIN</label><input type="text" id="s_gstin" class="form-control" value="18ABGFM5224K1Z2"></div>
         </div>
-        <h4 style="margin:12px 0 8px; font-size:0.85rem; color:var(--secondary);">Bank Remittance Details</h4>
+        <h4 style="margin:14px 0 8px; font-size:0.85rem; color:var(--secondary);">Bank Remittance Details (Optional)</h4>
         <div class="grid grid-2">
-          <div class="form-group"><label class="form-label">Bank Name</label><input type="text" id="s_bankName" class="form-control" value="State Bank of India"></div>
-          <div class="form-group"><label class="form-label">Account No</label><input type="text" id="s_bankAcNo" class="form-control" value="38472910482"></div>
-          <div class="form-group"><label class="form-label">IFSC Code</label><input type="text" id="s_bankIfsc" class="form-control" value="SBIN0003295"></div>
-          <div class="form-group"><label class="form-label">Branch</label><input type="text" id="s_bankBranch" class="form-control" value="G.S. Road, Guwahati"></div>
+          <div class="form-group"><label class="form-label">Bank Name</label><input type="text" id="s_bankName" class="form-control" placeholder="e.g. State Bank of India"></div>
+          <div class="form-group"><label class="form-label">Account No</label><input type="text" id="s_bankAcNo" class="form-control" placeholder="Enter Account Number"></div>
+          <div class="form-group"><label class="form-label">IFSC Code</label><input type="text" id="s_bankIfsc" class="form-control" placeholder="e.g. SBIN0003295"></div>
+          <div class="form-group"><label class="form-label">Branch</label><input type="text" id="s_bankBranch" class="form-control" placeholder="e.g. G.S. Road, Guwahati"></div>
         </div>
       </div>
       <div class="modal-footer">
@@ -1150,11 +1160,11 @@
     </div>
   </div>
 
-  <!-- Saved Quotations Modal -->
+  <!-- Saved Quotations & Backup Modal -->
   <div class="modal" id="historyModal">
     <div class="modal-content" style="max-width:750px;">
       <div class="modal-header">
-        <span>📂 Saved Local Quotations</span>
+        <span>📂 Saved Quotations &amp; Backups</span>
         <span style="cursor:pointer;" onclick="closeHistoryModal()">&times;</span>
       </div>
       <div class="modal-body" style="padding:0;">
@@ -1173,7 +1183,12 @@
           </tbody>
         </table>
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-sm btn-outline" onclick="exportBackupJson()" title="Download JSON backup of all saved quotations and firm settings">📥 Backup (JSON)</button>
+          <button class="btn btn-sm btn-outline" onclick="triggerImportJson()" title="Restore saved quotations from a JSON backup file">📤 Restore (JSON)</button>
+          <input type="file" id="importBackupFileInput" accept=".json" style="display:none;" onchange="handleImportJson(event)">
+        </div>
         <button class="btn btn-outline" onclick="closeHistoryModal()">Close</button>
       </div>
     </div>
@@ -1186,46 +1201,41 @@
         <span style="font-weight:700;">✅ Quotation Saved!</span>
         <span style="cursor:pointer; font-size:1.4rem;" onclick="closeSaveSuccessModal()">&times;</span>
       </div>
-      <div class="modal-body" style="padding:22px 20px; text-align:center;">
-        <div style="font-size:3rem; margin-bottom:8px;">💾</div>
-        <h3 style="font-size:1.2rem; color:#1E293B; margin-bottom:6px;">Quotation <span id="saveSuccessQuoteNo">MSS/2026-27/0001</span> Saved!</h3>
-        <p style="font-size:0.85rem; color:#64748B; margin-bottom:20px;">
-          Saved to your browser's local database. Would you like to send the official quotation PDF to your customer via WhatsApp now?
-        </p>
-
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <button class="btn btn-success" style="padding:12px; font-size:0.95rem; justify-content:center;" onclick="closeSaveSuccessModal(); shareWhatsAppWithPdf();">
-            💬 Send PDF Directly via WhatsApp
+      <div class="modal-body" style="padding:18px;">
+        <div style="font-size:0.95rem; margin-bottom:12px;">
+          Quotation <strong id="saveSuccessQuoteNo">MSS-0001</strong> has been successfully saved to your browser history.
+        </div>
+        <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:6px; padding:12px; font-size:0.82rem; color:#166534; margin-bottom:14px;">
+          💡 <strong>Tip:</strong> Would you like to share this quote directly with the client on WhatsApp right now?
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn btn-success" style="flex:1;" onclick="closeSaveSuccessModal(); shareWhatsAppWithPdf();">
+            💬 Share via WhatsApp Now
           </button>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <button class="btn btn-outline" style="justify-content:center;" onclick="closeSaveSuccessModal(); downloadQuotationPdf();">
-              📥 Download PDF
-            </button>
-            <button class="btn btn-secondary" style="justify-content:center;" onclick="closeSaveSuccessModal(); printQuotation();">
-              🖨️ Print / PDF
-            </button>
-          </div>
+          <button class="btn btn-outline" onclick="closeSaveSuccessModal(); switchView('preview');">
+            👁️ Preview Document
+          </button>
         </div>
       </div>
-      <div class="modal-footer" style="justify-content:center;">
-        <button class="btn btn-outline" onclick="closeSaveSuccessModal()">Keep Editing</button>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" onclick="closeSaveSuccessModal()">Done</button>
       </div>
     </div>
   </div>
 
-  <!-- WhatsApp Desktop Guide Modal -->
+  <!-- WhatsApp Sharing Instruction Modal -->
   <div class="modal" id="whatsappGuideModal">
-    <div class="modal-content" style="max-width:540px;">
+    <div class="modal-content" style="max-width:480px;">
       <div class="modal-header" style="background:#25D366; color:#fff;">
-        <span style="font-weight:700;">💬 WhatsApp Quotation PDF Ready</span>
+        <span style="font-weight:700;">💬 WhatsApp PDF Sharing</span>
         <span style="cursor:pointer; font-size:1.4rem;" onclick="closeWhatsAppGuideModal()">&times;</span>
       </div>
-      <div class="modal-body" style="padding:20px;">
-        <div style="text-align:center; margin-bottom:16px;">
-          <div style="font-size:2.8rem; margin-bottom:6px;">📄 ➡️ 💬</div>
+      <div class="modal-body" style="padding:18px;">
+        <div style="text-align:center; margin-bottom:14px;">
+          <div style="font-size:2rem; margin-bottom:4px;">📎</div>
           <h3 style="font-size:1.15rem; color:#1E293B; margin-bottom:4px;">PDF Downloaded &amp; WhatsApp Opened!</h3>
           <p style="font-size:0.82rem; color:#64748B;">
-            The official quotation PDF has been downloaded to your computer and WhatsApp Web is now open.
+            The official quotation PDF has been downloaded to your computer and WhatsApp is ready.
           </p>
         </div>
 
@@ -1233,11 +1243,11 @@
           <div style="font-weight:700; margin-bottom:8px;">🚀 Quick Attachment Instructions:</div>
           <div style="display:flex; gap:10px; align-items:flex-start; margin-bottom:8px;">
             <span style="background:#22C55E; color:#fff; border-radius:50%; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; flex-shrink:0;">1</span>
-            <span>Switch to the opened <strong>WhatsApp Web</strong> tab. Your client's chat and summary text are already waiting.</span>
+            <span>Switch to the opened <strong>WhatsApp</strong> tab/app. Your client's chat and summary text are waiting.</span>
           </div>
           <div style="display:flex; gap:10px; align-items:flex-start;">
             <span style="background:#22C55E; color:#fff; border-radius:50%; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; flex-shrink:0;">2</span>
-            <span>Click the <strong>📎 (Paperclip)</strong> icon &rarr; select <strong>Document</strong> &rarr; choose <strong id="waGuideFileName">Quotation.pdf</strong> (or simply <strong>drag &amp; drop</strong> the downloaded file from your browser's download bar into the chat)!</span>
+            <span>Click the <strong>📎 (Paperclip)</strong> &rarr; select <strong>Document</strong> &rarr; choose <strong id="waGuideFileName">Quotation.pdf</strong> (or simply drag &amp; drop it)!</span>
           </div>
         </div>
 
@@ -1250,7 +1260,7 @@
         </div>
       </div>
       <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
-        <button class="btn btn-outline" onclick="reopenWhatsAppTab()">💬 Open WhatsApp Web Again</button>
+        <button class="btn btn-outline" onclick="reopenWhatsAppTab()">💬 Open WhatsApp Again</button>
         <button class="btn btn-success" onclick="closeWhatsAppGuideModal()">✅ Done</button>
       </div>
     </div>
@@ -1286,30 +1296,138 @@
     </div>
   </div>
 
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" style="position:fixed; top:20px; right:20px; z-index:9999; display:flex; flex-direction:column; gap:8px; pointer-events:none;"></div>
+
   <script>
+    // Indian State GST Codes Dictionary
+    const GST_STATES = {
+      "01": "Jammu and Kashmir", "02": "Himachal Pradesh", "03": "Punjab", "04": "Chandigarh",
+      "05": "Uttarakhand", "06": "Haryana", "07": "Delhi", "08": "Rajasthan", "09": "Uttar Pradesh",
+      "10": "Bihar", "11": "Sikkim", "12": "Arunachal Pradesh", "13": "Nagaland", "14": "Manipur",
+      "15": "Mizoram", "16": "Tripura", "17": "Meghalaya", "18": "Assam", "19": "West Bengal",
+      "20": "Jharkhand", "21": "Odisha", "22": "Chhattisgarh", "23": "Madhya Pradesh", "24": "Gujarat",
+      "26": "Dadra and Nagar Haveli and Daman and Diu", "27": "Maharashtra", "29": "Karnataka",
+      "30": "Goa", "31": "Lakshadweep", "32": "Kerala", "33": "Tamil Nadu", "34": "Puducherry",
+      "35": "Andaman and Nicobar Islands", "36": "Telangana", "37": "Andhra Pradesh", "38": "Ladakh",
+      "97": "Other Territory"
+    };
+
     // Product Catalog Database
     const CATALOG = {
-      1: { name: "HP ProBook 440 G10 Laptop (i5 13th Gen, 16GB, 512GB SSD, Win 11)", hsn: "84713010", unit: "Pcs", rate: 62500, gst: 18 },
-      2: { name: "Dell OptiPlex 7010 Desktop PC (Core i5, 8GB RAM, 512GB SSD)", hsn: "84715000", unit: "Set", rate: 48000, gst: 18 },
-      3: { name: "HP LaserJet Pro M404dn Monochrome Duplex Network Printer", hsn: "84433210", unit: "Pcs", rate: 24500, gst: 18 },
-      4: { name: "Seagate IronWolf 4TB NAS Surveillance Internal SATA HDD", hsn: "84717020", unit: "Pcs", rate: 9200, gst: 18 },
-      5: { name: "Crucial 16GB DDR4 3200MHz Desktop RAM Module", hsn: "84733030", unit: "Pcs", rate: 3400, gst: 18 },
-      6: { name: "Hikvision 2MP IP Bullet Outdoor Night Vision Camera (DS-2CD1023G0E-I)", hsn: "85258900", unit: "Pcs", rate: 2400, gst: 18 },
-      7: { name: "Hikvision 2MP IP Dome Indoor Audio Security Camera", hsn: "85258900", unit: "Pcs", rate: 2200, gst: 18 },
-      8: { name: "CP Plus 8-Channel 4K Ultra HD Network Video Recorder (NVR)", hsn: "85219090", unit: "Set", rate: 7500, gst: 18 },
-      9: { name: "Hikvision Cat6 UTP 4-Pair Pure Copper Solid 305m Cable Roll", hsn: "85444999", unit: "Lot", rate: 7800, gst: 18 },
-      10: { name: "Cisco Catalyst 24-Port Gigabit Managed Layer-2 Network Switch", hsn: "85176290", unit: "Pcs", rate: 18500, gst: 18 },
-      11: { name: "TP-Link Omada EAP610 Wi-Fi 6 Dual-Band Ceiling Mount Access Point", hsn: "85176290", unit: "Pcs", rate: 7200, gst: 18 },
-      12: { name: "D-Link 9U Wall Mount Server/Network Rack with PDU and Trays", hsn: "85381010", unit: "Pcs", rate: 4800, gst: 18 },
-      13: { name: "Microsoft Windows 11 Professional 64-bit OEM License Key", hsn: "997331", unit: "Pcs", rate: 12500, gst: 18 },
-      14: { name: "Quick Heal Total Security Antivirus 3-User 1-Year Retail Pack", hsn: "997331", unit: "Pcs", rate: 2100, gst: 18 },
-      15: { name: "Annual Maintenance Contract (AMC) for Office IT Infrastructure (Comprehensive)", hsn: "998713", unit: "Year", rate: 18000, gst: 18 },
-      16: { name: "CCTV Installation, Cabling, Conduit & Complete Testing Service", hsn: "998719", unit: "Set", rate: 3500, gst: 18 },
-      17: { name: "Structured Cat6 LAN Cabling Point Termination with Faceplate & I/O", hsn: "998719", unit: "Lot", rate: 450, gst: 18 },
+      1: { name: "HP ProBook 440 G10 Laptop (i5 13th Gen, 16GB, 512GB SSD, Win 11)", unit: "Pcs", rate: 62500, gst: 18 },
+      2: { name: "Dell OptiPlex 7010 Desktop PC (Core i5, 8GB RAM, 512GB SSD)", unit: "Set", rate: 48000, gst: 18 },
+      3: { name: "HP LaserJet Pro M404dn Monochrome Duplex Network Printer", unit: "Pcs", rate: 24500, gst: 18 },
+      4: { name: "Seagate IronWolf 4TB NAS Surveillance Internal SATA HDD", unit: "Pcs", rate: 9200, gst: 18 },
+      5: { name: "Crucial 16GB DDR4 3200MHz Desktop RAM Module", unit: "Pcs", rate: 3400, gst: 18 },
+      6: { name: "Hikvision 2MP IP Bullet Outdoor Night Vision Camera (DS-2CD1023G0E-I)", unit: "Pcs", rate: 2400, gst: 18 },
+      7: { name: "Hikvision 2MP IP Dome Indoor Audio Security Camera", unit: "Pcs", rate: 2200, gst: 18 },
+      8: { name: "CP Plus 8-Channel 4K Ultra HD Network Video Recorder (NVR)", unit: "Set", rate: 7500, gst: 18 },
+      9: { name: "Hikvision Cat6 UTP 4-Pair Pure Copper Solid 305m Cable Roll", unit: "Lot", rate: 7800, gst: 18 },
+      10: { name: "Cisco Catalyst 24-Port Gigabit Managed Layer-2 Network Switch", unit: "Pcs", rate: 18500, gst: 18 },
+      11: { name: "TP-Link Omada EAP610 Wi-Fi 6 Dual-Band Ceiling Mount Access Point", unit: "Pcs", rate: 7200, gst: 18 },
+      12: { name: "D-Link 9U Wall Mount Server/Network Rack with PDU and Trays", unit: "Pcs", rate: 4800, gst: 18 },
+      13: { name: "Microsoft Windows 11 Professional 64-bit OEM License Key", unit: "Pcs", rate: 12500, gst: 18 },
+      14: { name: "Quick Heal Total Security Antivirus 3-User 1-Year Retail Pack", unit: "Pcs", rate: 2100, gst: 18 },
+      15: { name: "Annual Maintenance Contract (AMC) for Office IT Infrastructure", unit: "Year", rate: 18000, gst: 18 },
+      16: { name: "CCTV Installation, Cabling, Conduit & Complete Testing Service", unit: "Set", rate: 3500, gst: 18 },
+      17: { name: "Structured Cat6 LAN Cabling Point Termination with Faceplate & I/O", unit: "Lot", rate: 450, gst: 18 },
     };
 
     let items = [];
     let currentScale = 1.0;
+    let currentWizardStep = 1;
+
+    // Financial Year & Sequential Quote Logic
+    function getFinancialYear(dateObj = new Date()) {
+      const y = dateObj.getFullYear();
+      const m = dateObj.getMonth(); // 0-indexed, 3 = April
+      if (m >= 3) {
+        return `${y}-${String((y + 1) % 100).padStart(2, '0')}`;
+      } else {
+        return `${y - 1}-${String(y % 100).padStart(2, '0')}`;
+      }
+    }
+
+    function generateNextQuoteNumber() {
+      const fy = getFinancialYear();
+      const seqKey = `maruti_quote_seq_${fy}`;
+      let nextSeq = parseInt(localStorage.getItem(seqKey) || '0', 10) + 1;
+      return `MSS/${fy}/${String(nextSeq).padStart(4, '0')}`;
+    }
+
+    function commitQuoteNumberSeq(quoteNo) {
+      const match = (quoteNo || '').match(/^MSS\/(\d{4}-\d{2})\/(\d{4})$/);
+      if (match) {
+        const fy = match[1];
+        const num = parseInt(match[2], 10);
+        const seqKey = `maruti_quote_seq_${fy}`;
+        const current = parseInt(localStorage.getItem(seqKey) || '0', 10);
+        if (num > current) {
+          localStorage.setItem(seqKey, num);
+        }
+      }
+    }
+
+    function assignNextSeqQuoteNumber() {
+      const nextNo = generateNextQuoteNumber();
+      document.getElementById('quoteNumber').value = nextNo;
+      recalculate();
+      showToast(`Assigned sequential quote number: ${nextNo}`, "info", 3000);
+    }
+
+    // Step-by-Step Wizard Navigation
+    function goToWizardStep(stepNum) {
+      currentWizardStep = stepNum;
+      
+      // Update Step Panels
+      for (let i = 1; i <= 5; i++) {
+        const panel = document.getElementById(`stepPanel${i}`);
+        if (panel) {
+          if (i === stepNum) {
+            panel.classList.add('active');
+          } else {
+            panel.classList.remove('active');
+          }
+        }
+        
+        // Update Stepper Bar
+        const stepBtn = document.getElementById(`wStep${i}`);
+        if (stepBtn) {
+          if (i === stepNum) {
+            stepBtn.className = 'wizard-step active';
+          } else if (i < stepNum) {
+            stepBtn.className = 'wizard-step completed';
+          } else {
+            stepBtn.className = 'wizard-step';
+          }
+        }
+
+        const connector = document.getElementById(`wConn${i}`);
+        if (connector) {
+          if (i < stepNum) {
+            connector.className = 'step-connector completed';
+          } else {
+            connector.className = 'step-connector';
+          }
+        }
+      }
+
+      // If opening Step 5 (Finish/Review), update review highlights
+      if (stepNum === 5) {
+        const qNo = document.getElementById('quoteNumber').value || 'MSS-0001';
+        const client = document.getElementById('clientName').value || 'Valued Customer';
+        const gTotal = document.getElementById('grandTotalVal').innerText;
+        document.getElementById('reviewQuoteNo').innerText = qNo;
+        document.getElementById('reviewClientName').innerText = client;
+        document.getElementById('reviewGrandTotal').innerText = gTotal;
+      }
+
+      // Smooth scroll to top of editor on mobile
+      if (window.innerWidth <= 768) {
+        document.getElementById('editorPane').scrollIntoView({ behavior: 'smooth' });
+      }
+    }
 
     // Initialize on Load
     window.addEventListener('DOMContentLoaded', () => {
@@ -1317,30 +1435,31 @@
       initDates();
       updateSavedCount();
       
+      // Seed default quotation number if empty
+      if (!document.getElementById('quoteNumber').value) {
+        document.getElementById('quoteNumber').value = generateNextQuoteNumber();
+      }
+
       // Seed default items
       addItemFromCatalog(1);
       addItemFromCatalog(6);
       addItemFromCatalog(16);
 
-      // Handle screen resizing
-      window.addEventListener('resize', autoAdjustViewOnResize);
+      // Check window width and set split or single view
       autoAdjustViewOnResize();
-
-      // Silently pre-warm PDF engine in background after initial paint
-      setTimeout(() => {
-        ensurePdfEngine().catch(() => {});
-      }, 1500);
+      window.addEventListener('resize', autoAdjustViewOnResize);
     });
 
     function initDates() {
       const today = new Date();
-      document.getElementById('quoteDate').value = today.toISOString().split('T')[0];
       const valid = new Date();
-      valid.setDate(valid.getDate() + 15);
-      document.getElementById('validUntil').value = valid.toISOString().split('T')[0];
+      valid.setDate(today.getDate() + 15);
+
+      const toISO = (d) => d.toISOString().split('T')[0];
+      document.getElementById('quoteDate').value = toISO(today);
+      document.getElementById('validUntil').value = toISO(valid);
     }
 
-    // View Switching Logic (Form, Preview, Split)
     function switchView(mode) {
       const editor = document.getElementById('editorPane');
       const preview = document.getElementById('previewPane');
@@ -1348,7 +1467,7 @@
 
       document.getElementById('tabEditor').classList.remove('active');
       document.getElementById('tabPreview').classList.remove('active');
-      if (document.getElementById('tabSplit')) document.getElementById('tabSplit').classList.remove('active');
+      document.getElementById('tabSplit').classList.remove('active');
 
       if (mode === 'editor') {
         layout.className = 'workspace-single';
@@ -1484,6 +1603,15 @@
       }
     }
 
+    function toggleSignature(show) {
+      const sigImg = document.getElementById('p_signatureImgBlock');
+      const sigSpace = document.getElementById('p_signatureSpace');
+      if (sigImg && sigSpace) {
+        sigImg.style.display = show ? 'block' : 'none';
+        sigSpace.style.display = show ? 'none' : 'block';
+      }
+    }
+
     function renderTable() {
       const tbody = document.getElementById('itemsBody');
       tbody.innerHTML = '';
@@ -1510,7 +1638,7 @@
           <!-- Description (Full width) -->
           <td style="min-width:220px;">
             <span class="col-mobile-label">Description of Goods / Services</span>
-            <input type="text" class="form-control" value="${escapeHtml(item.name)}" placeholder="Item description" onchange="updateItem(${i}, 'name', this.value)">
+            <input type="text" class="form-control" value="${escapeHtml(item.name || '')}" placeholder="Item description" onchange="updateItem(${i}, 'name', this.value)">
           </td>
 
           <!-- Qty -->
@@ -1522,7 +1650,7 @@
           <!-- Unit -->
           <td style="width:75px;">
             <span class="col-mobile-label">Unit</span>
-            <input type="text" class="form-control" style="text-align:center;" value="${item.unit || 'Pcs'}" onchange="updateItem(${i}, 'unit', this.value)">
+            <input type="text" class="form-control" style="text-align:center;" value="${escapeHtml(item.unit || 'Pcs')}" onchange="updateItem(${i}, 'unit', this.value)">
           </td>
 
           <!-- Rate -->
@@ -1637,9 +1765,9 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td style="text-align:center;">${i+1}</td>
-          <td><strong>${escapeHtml(item.name)}</strong></td>
-          <td style="text-align:center; white-space:nowrap;">${item.qty}</td>
-          <td style="text-align:center; white-space:nowrap;">${item.unit || 'Pcs'}</td>
+          <td><strong>${escapeHtml(item.name || '')}</strong></td>
+          <td style="text-align:center; white-space:nowrap;">${escapeHtml(String(item.qty || 1))}</td>
+          <td style="text-align:center; white-space:nowrap;">${escapeHtml(item.unit || 'Pcs')}</td>
           <td style="text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums;">₹&nbsp;${formatCurrency(item.rate)}</td>
           <td style="text-align:center; white-space:nowrap;">${item.gst}%</td>
           <td style="text-align:right; font-weight:700; white-space:nowrap; font-variant-numeric:tabular-nums;">₹&nbsp;${formatCurrency(total)}</td>
@@ -1648,20 +1776,64 @@
       });
     }
 
-    function validateGstin(gstin) {
-      gstin = (gstin || '').trim().toUpperCase();
-      document.getElementById('clientGstin').value = gstin;
-      if (gstin.length >= 2) {
-        const code = gstin.substring(0, 2);
-        if (code === '18') {
-          document.getElementById('clientState').value = "Assam (18)";
-          document.getElementById('taxType').value = "intra";
-        } else {
-          document.getElementById('clientState').value = "Other State (" + code + ")";
-          document.getElementById('taxType').value = "inter";
-        }
+    function validateGstin(rawGstin) {
+      const gstinInput = document.getElementById('clientGstin');
+      const gstinErr = document.getElementById('clientGstinError');
+      const stateInput = document.getElementById('clientState');
+      const taxTypeSelect = document.getElementById('taxType');
+
+      const gstin = (rawGstin || '').trim().toUpperCase();
+      gstinInput.value = gstin;
+
+      // 1. Cleared / Empty: Reset to default Assam (18) and Intra-state
+      if (!gstin) {
+        if (gstinErr) gstinErr.style.display = 'none';
+        stateInput.value = "Assam (18)";
+        taxTypeSelect.value = "intra";
         recalculate();
+        return;
       }
+
+      // 2. State code and partial input check
+      const stateCode = gstin.substring(0, 2);
+      const stateName = GST_STATES[stateCode];
+
+      if (gstin.length < 15) {
+        if (gstinErr) {
+          gstinErr.innerText = `GSTIN is ${gstin.length}/15 characters. Enter full 15-character GSTIN.`;
+          gstinErr.style.display = 'block';
+        }
+        return;
+      }
+
+      // 3. Strict 15-character GSTIN regex validation
+      const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+      if (!gstinRegex.test(gstin)) {
+        if (gstinErr) {
+          gstinErr.innerText = "Invalid GSTIN format. Expected: 18AAAAA0000A1Z5";
+          gstinErr.style.display = 'block';
+        }
+        return;
+      }
+
+      if (!stateName) {
+        if (gstinErr) {
+          gstinErr.innerText = `Invalid State Code '${stateCode}' in GSTIN`;
+          gstinErr.style.display = 'block';
+        }
+        return;
+      }
+
+      // Valid GSTIN: Set state and automatically determine Intra vs Inter-State
+      if (gstinErr) gstinErr.style.display = 'none';
+      stateInput.value = `${stateName} (${stateCode})`;
+
+      if (stateCode === '18') {
+        taxTypeSelect.value = "intra"; // Assam: CGST + SGST
+      } else {
+        taxTypeSelect.value = "inter"; // Out-of-State: IGST
+      }
+      recalculate();
     }
 
     function loadSampleClient() {
@@ -1671,113 +1843,76 @@
       document.getElementById('clientGstin').value = "18AAACB1234F1Z9";
       document.getElementById('clientAddress').value = "Mahapurush Srimanta Sankaradeva Path, Christian Basti, Guwahati - 781005";
       validateGstin("18AAACB1234F1Z9");
+      showToast("Loaded sample client details", "info");
     }
 
     // Toast Notification Utility
     function showToast(message, type = 'info', duration = 3500) {
       let container = document.getElementById('toastContainer');
-      if (!container) {
-        container = document.createElement('div');
-        container.id = 'toastContainer';
-        container.className = 'toast-container no-print';
-        document.body.appendChild(container);
-      }
+      if (!container) return;
 
       const toast = document.createElement('div');
-      toast.className = `toast toast-${type}`;
-      toast.innerHTML = `<span>${message}</span>`;
+      const bg = type === 'success' ? '#16A34A' : (type === 'warning' ? '#D97706' : (type === 'error' ? '#DC2626' : '#3F527D'));
+      toast.style.cssText = `background:${bg}; color:#fff; padding:10px 16px; border-radius:6px; font-size:0.82rem; font-weight:600; box-shadow:0 4px 12px rgba(0,0,0,0.15); pointer-events:auto; display:flex; align-items:center; gap:8px; animation:fadeIn 0.2s;`;
+      toast.innerText = message;
       container.appendChild(toast);
 
       setTimeout(() => {
         toast.style.opacity = '0';
-        toast.style.transform = 'translateY(16px)';
-        setTimeout(() => toast.remove(), 350);
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
       }, duration);
     }
 
-    // High-performance asynchronous PDF Engine loader with multi-tier fallback
-    let isPdfEngineLoaded = false;
+    // On-Demand PDF Engine Loader
     async function ensurePdfEngine() {
-      if (typeof html2pdf !== 'undefined') {
-        isPdfEngineLoaded = true;
-        return true;
-      }
+      if (typeof html2pdf !== 'undefined') return true;
 
-      // Tier 1: Cloudflare CDN
-      try {
-        await loadScriptPromise('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
-        if (typeof html2pdf !== 'undefined') {
-          isPdfEngineLoaded = true;
-          return true;
-        }
-      } catch (e) {
-        console.warn('CDN html2pdf unavailable, trying local fallback...', e);
-      }
-
-      // Tier 2: Local relative path fallback
-      try {
-        await loadScriptPromise('public/js/html2pdf.bundle.min.js');
-        if (typeof html2pdf !== 'undefined') {
-          isPdfEngineLoaded = true;
-          return true;
-        }
-      } catch (e) {
-        console.warn('Local html2pdf unavailable:', e);
-      }
-
-      throw new Error('PDF Engine (html2pdf) could not be loaded.');
-    }
-
-    function loadScriptPromise(src) {
-      return new Promise((resolve, reject) => {
-        const existing = document.querySelector(`script[src="${src}"]`);
-        if (existing) {
-          let count = 0;
-          const poll = setInterval(() => {
-            if (typeof html2pdf !== 'undefined') {
-              clearInterval(poll);
-              resolve();
-            } else if (++count > 40) {
-              clearInterval(poll);
-              reject(new Error('Timeout loading ' + src));
-            }
-          }, 100);
-          return;
-        }
+      // 1. Try local offline script path first
+      const loadedLocal = await new Promise((resolve) => {
         const s = document.createElement('script');
-        s.src = src;
-        s.async = true;
-        s.onload = () => resolve();
-        s.onerror = (err) => reject(err);
+        s.src = './js/html2pdf.bundle.min.js';
+        s.onload = () => resolve(true);
+        s.onerror = () => resolve(false);
         document.head.appendChild(s);
       });
+      if (loadedLocal && typeof html2pdf !== 'undefined') return true;
+
+      // 2. Fallback to CDN if online
+      const loadedCdn = await new Promise((resolve) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        s.onload = () => resolve(true);
+        s.onerror = () => resolve(false);
+        document.head.appendChild(s);
+      });
+      return loadedCdn && typeof html2pdf !== 'undefined';
     }
 
-    // PDF Generation Engine using html2pdf
+    // PDF Generation: Render in visible-opacity sandbox to eliminate 3KB blank PDF issue
     async function generateQuotationPdfBlob(filename) {
       recalculate();
+      const originalSheet = document.getElementById('invoiceSheet');
+      if (!originalSheet) throw new Error('Invoice sheet not found');
 
-      // Ensure PDF engine is ready
-      await ensurePdfEngine();
-
-      const sourceSheet = document.getElementById('invoiceSheet');
+      // Create a visible on-screen sandbox container (opacity: 0.01) so browser layout engine fully paints it!
+      const sandbox = document.createElement('div');
+      sandbox.id = 'pdfRenderSandbox';
+      sandbox.style.cssText = 'position:fixed; top:0; left:0; width:794px; min-width:794px; max-width:794px; background:#ffffff; opacity:0.01; z-index:-9999; pointer-events:none; overflow:visible;';
       
-      // Clone element into off-screen container for 100% vector scale rendering
-      const clone = sourceSheet.cloneNode(true);
-      clone.id = 'tempPdfRenderSheet';
+      const clone = originalSheet.cloneNode(true);
       clone.style.transform = 'none';
       clone.style.width = '794px';
       clone.style.maxWidth = '794px';
-      clone.style.minHeight = 'auto';
       clone.style.boxShadow = 'none';
       clone.style.borderRadius = '0';
       clone.style.padding = '24px 28px';
-      clone.style.position = 'fixed';
-      clone.style.left = '-9999px';
-      clone.style.top = '0';
-      clone.style.background = '#ffffff';
-      clone.style.zIndex = '-9999';
-      document.body.appendChild(clone);
+      clone.style.margin = '0';
+      sandbox.appendChild(clone);
+      document.body.appendChild(sandbox);
+
+      // Wait 150ms for layout engine and images to paint
+      await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 150)));
 
       const opt = {
         margin: [6, 8, 6, 8],
@@ -1802,10 +1937,10 @@
           throw new Error('PDF Engine (html2pdf) is not loaded.');
         }
         const pdfBlob = await html2pdf().set(opt).from(clone).outputPdf('blob');
-        clone.remove();
+        sandbox.remove();
         return pdfBlob;
       } catch (err) {
-        clone.remove();
+        sandbox.remove();
         console.error("PDF generation error:", err);
         throw err;
       }
@@ -1828,15 +1963,27 @@
       const quoteNo = (document.getElementById('quoteNumber').value || 'MSS-0001').replace(/[^a-zA-Z0-9_-]/g, '-');
       const filename = `Quotation_${quoteNo}.pdf`;
 
-      showToast("⏳ Generating Quotation PDF...", "info", 4000);
-      try {
-        const blob = await generateQuotationPdfBlob(filename);
-        downloadBlob(blob, filename);
-        showToast(`✅ Saved ${filename} to your Downloads!`, "success", 4000);
-      } catch (err) {
-        console.error("Direct PDF download fallback to print:", err);
-        window.print();
+      showToast("⏳ Preparing Quotation PDF...", "info", 3000);
+      const hasEngine = await ensurePdfEngine();
+
+      if (hasEngine && typeof html2pdf !== 'undefined') {
+        try {
+          const blob = await generateQuotationPdfBlob(filename);
+          if (blob && blob.size > 10000) { // Verify blob is not a blank 3KB file!
+            downloadBlob(blob, filename);
+            showToast(`✅ Saved ${filename} to your Downloads!`, "success", 4000);
+            return;
+          }
+        } catch (err) {
+          console.warn("Direct canvas PDF render error, falling back to native vector print:", err);
+        }
       }
+
+      // 100% Reliable Vector Print Fallback (Android/iOS & Desktop)
+      showToast("🖨️ Opening print dialog. Choose 'Save as PDF' to save your vector quotation.", "info", 4500);
+      setTimeout(() => {
+        printQuotation();
+      }, 400);
     }
 
     // WhatsApp Direct Sharing with PDF Engine
@@ -1853,6 +2000,10 @@
       const cleanPhone = phone.length === 10 ? '91' + phone : phone;
       const whatsappText = generateQuotationSummaryText();
 
+      window.currentClientPhone = cleanPhone;
+      window.currentWhatsAppText = whatsappText;
+      window.currentQuotationPdfFileName = filename;
+
       const waBtn = document.getElementById('btnWhatsApp');
       const originalText = waBtn ? waBtn.innerHTML : '💬 WhatsApp';
       if (waBtn) {
@@ -1860,54 +2011,27 @@
         waBtn.disabled = true;
       }
 
-      showToast("⏳ Preparing Quotation PDF for WhatsApp...", "info", 3500);
-
       try {
-        const pdfBlob = await generateQuotationPdfBlob(filename);
-        const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf', lastModified: Date.now() });
-
-        window.currentQuotationPdfBlob = pdfBlob;
-        window.currentQuotationPdfFileName = filename;
-        window.currentClientPhone = cleanPhone;
-        window.currentWhatsAppText = whatsappText;
-
-        // 1. Mobile Web Share API Level 2 (Sends file directly into WhatsApp on Android / iOS)
-        if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-          try {
-            await navigator.share({
-              title: `Quotation ${quoteNo} - Maruti Sales & Services`,
-              text: whatsappText,
-              files: [pdfFile]
-            });
-            showToast("✅ Quotation PDF sent via WhatsApp!", "success");
-            if (waBtn) { waBtn.innerHTML = originalText; waBtn.disabled = false; }
-            return;
-          } catch (shareErr) {
-            if (shareErr.name === 'AbortError') {
-              if (waBtn) { waBtn.innerHTML = originalText; waBtn.disabled = false; }
-              return;
-            }
-            console.warn("navigator.share failed, continuing to download & web fallback:", shareErr);
-          }
+        const hasEngine = await ensurePdfEngine();
+        let pdfBlob = null;
+        if (hasEngine && typeof html2pdf !== 'undefined') {
+          pdfBlob = await generateQuotationPdfBlob(filename);
         }
 
-        // 2. Desktop Fallback:
-        // Automatically save the PDF file to Downloads
-        downloadBlob(pdfBlob, filename);
-
-        // Open WhatsApp Web with client phone and message pre-filled
-        reopenWhatsAppTab();
-
-        // Display user instruction guide modal
-        openWhatsAppGuideModal(filename, cleanPhone);
-
+        if (pdfBlob && pdfBlob.size > 10000) {
+          window.currentQuotationPdfBlob = pdfBlob;
+          downloadBlob(pdfBlob, filename);
+          reopenWhatsAppTab();
+          openWhatsAppGuideModal(filename, cleanPhone);
+        } else {
+          // Open WhatsApp directly with formatted summary text
+          reopenWhatsAppTab();
+          showToast("Opened WhatsApp with quotation summary. Use 'Print / PDF' to save PDF file.", "info", 5000);
+        }
       } catch (err) {
-        console.error("PDF generation for WhatsApp failed, fallback to summary text:", err);
-        const waUrl = cleanPhone 
-          ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(whatsappText)}`
-          : `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
-        window.open(waUrl, '_blank');
-        showToast("Opened WhatsApp with summary. Use 'Print / PDF' to save sheet.", "warning", 5000);
+        console.warn("PDF generation for WhatsApp failed, fallback to summary text:", err);
+        reopenWhatsAppTab();
+        showToast("Opened WhatsApp with quotation summary.", "info", 4000);
       } finally {
         if (waBtn) {
           waBtn.innerHTML = originalText;
@@ -1944,9 +2068,10 @@
       const text = window.currentWhatsAppText || generateQuotationSummaryText();
       const phoneParam = cleanPhone ? (cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone) : '';
       
-      const waUrl = phoneParam
-        ? `https://web.whatsapp.com/send?phone=${phoneParam}&text=${encodeURIComponent(text)}`
-        : `https://web.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const waUrl = isMobile
+        ? (phoneParam ? `https://api.whatsapp.com/send?phone=${phoneParam}&text=${encodeURIComponent(text)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`)
+        : (phoneParam ? `https://web.whatsapp.com/send?phone=${phoneParam}&text=${encodeURIComponent(text)}` : `https://web.whatsapp.com/send?text=${encodeURIComponent(text)}`);
       
       window.open(waUrl, '_blank');
     }
@@ -1974,17 +2099,28 @@
       items.forEach((it, idx) => {
         msg += `  ${idx+1}. ${it.name} (Qty: ${it.qty} ${it.unit})\n`;
       });
-      msg += `\n🏦 *Remittance Bank Details:*\n`;
-      msg += `• Bank: State Bank of India\n`;
-      msg += `• A/C: 38472910482 (IFSC: SBIN0003295)\n`;
-      msg += `• Branch: G.S. Road, Guwahati\n\n`;
-      msg += `For orders or queries, call us at +91 70022 53021. Thank you!`;
+
+      // Read bank remittance details dynamically from Profile settings (No hardcoded credentials)
+      const s = getSavedProfile();
+      const bName = s.bankName || document.getElementById('p_bankName')?.innerText;
+      const bAc = s.bankAcNo || '';
+      const bIfsc = s.bankIfsc || '';
+      const bBranch = s.bankBranch || '';
+
+      if (bAc && bAc !== '-' && bAc.trim() !== '') {
+        msg += `\n🏦 *Remittance Bank Details:*\n`;
+        if (bName) msg += `• Bank: ${bName}\n`;
+        msg += `• A/C: ${bAc} ${bIfsc ? `(IFSC: ${bIfsc})` : ''}\n`;
+        if (bBranch) msg += `• Branch: ${bBranch}\n`;
+      }
+      
+      msg += `\nFor orders or queries, call us at +91 70022 53021. Thank you!`;
       return msg;
     }
 
     function saveQuotationToStorage() {
       const quote = {
-        number: document.getElementById('quoteNumber').value,
+        number: document.getElementById('quoteNumber').value || generateNextQuoteNumber(),
         status: document.getElementById('quoteStatusSelect')?.value || 'draft',
         date: document.getElementById('quoteDate').value,
         validUntil: document.getElementById('validUntil').value,
@@ -1999,20 +2135,30 @@
         },
         items: items,
         terms: document.getElementById('termsConditions').value,
+        includeSignature: document.getElementById('toggleSignatureSwitch')?.checked || false,
         savedAt: new Date().toISOString()
       };
 
       let history = JSON.parse(localStorage.getItem('maruti_quotes') || '[]');
       const existingIdx = history.findIndex(q => q.number === quote.number);
+      
+      // Warn before overwriting an existing quotation number!
       if (existingIdx >= 0) {
+        const ok = confirm(`Quotation "${quote.number}" already exists in your saved history.\n\nDo you want to overwrite it with your current changes?`);
+        if (!ok) {
+          showToast("Save cancelled. You can change the Quote Number to save as a new quote.", "warning", 4500);
+          return;
+        }
         history[existingIdx] = quote;
       } else {
         history.unshift(quote);
+        commitQuoteNumberSeq(quote.number);
       }
+
       localStorage.setItem('maruti_quotes', JSON.stringify(history));
       updateSavedCount();
 
-      // Show interactive save modal with instant WhatsApp option
+      // Show interactive save modal
       openSaveSuccessModal(quote.number);
     }
 
@@ -2034,13 +2180,22 @@
         document.getElementById('clientGstin').value = "";
         document.getElementById('clientAddress').value = "";
         initDates();
-        const rand = Math.floor(1000 + Math.random() * 9000);
-        document.getElementById('quoteNumber').value = "MSS/2026-27/" + rand;
+        
+        // Assign next sequential quotation number
+        document.getElementById('quoteNumber').value = generateNextQuoteNumber();
         if (document.getElementById('quoteStatusSelect')) {
           document.getElementById('quoteStatusSelect').value = 'draft';
         }
         updateQuoteStatus('draft');
+
+        if (document.getElementById('toggleSignatureSwitch')) {
+          document.getElementById('toggleSignatureSwitch').checked = false;
+          toggleSignature(false);
+        }
+
         renderTable();
+        goToWizardStep(1);
+        showToast("Started new quotation with sequential number", "info");
       }
     }
 
@@ -2066,11 +2221,11 @@
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>
-              <strong>${q.number}</strong>
+              <strong>${escapeHtml(q.number)}</strong>
               <div style="margin-top:2px;"><span class="badge status-badge-${st}" style="font-size:0.65rem; padding:2px 6px;">${st.toUpperCase()}</span></div>
             </td>
-            <td>${q.date}</td>
-            <td>${q.client?.name || 'Walk-in'}</td>
+            <td>${escapeHtml(q.date)}</td>
+            <td>${escapeHtml(q.client?.name || 'Walk-in')}</td>
             <td style="text-align:right; font-weight:600; font-variant-numeric:tabular-nums;">₹ ${formatCurrency(Math.round(total))}</td>
             <td style="text-align:center;">
               <button class="btn btn-sm btn-primary" onclick="loadQuoteFromHistory(${idx})">Load</button>
@@ -2110,20 +2265,104 @@
       }
       updateQuoteStatus(status);
 
+      const hasSig = q.includeSignature || false;
+      if (document.getElementById('toggleSignatureSwitch')) {
+        document.getElementById('toggleSignatureSwitch').checked = hasSig;
+      }
+      toggleSignature(hasSig);
+
       items = q.items || [];
       renderTable();
       closeHistoryModal();
+      goToWizardStep(1);
+      showToast(`Loaded quotation ${q.number}`, "success");
     }
 
     function deleteQuoteFromHistory(idx) {
       let history = JSON.parse(localStorage.getItem('maruti_quotes') || '[]');
-      history.splice(idx, 1);
-      localStorage.setItem('maruti_quotes', JSON.stringify(history));
-      updateSavedCount();
-      openHistoryModal();
+      const quoteNo = history[idx]?.number || 'Quote';
+      if (confirm(`Delete ${quoteNo} from saved quotations?`)) {
+        history.splice(idx, 1);
+        localStorage.setItem('maruti_quotes', JSON.stringify(history));
+        updateSavedCount();
+        openHistoryModal();
+        showToast("Quotation deleted", "info");
+      }
+    }
+
+    // JSON Backup Export and Import
+    function exportBackupJson() {
+      const data = {
+        app: "Maruti Quotation Maker",
+        version: "2.0",
+        exportedAt: new Date().toISOString(),
+        firmSettings: JSON.parse(localStorage.getItem('maruti_firm_settings') || '{}'),
+        quotations: JSON.parse(localStorage.getItem('maruti_quotes') || '[]')
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const filename = `Maruti_Quotations_Backup_${new Date().toISOString().split('T')[0]}.json`;
+      downloadBlob(blob, filename);
+      showToast("✅ JSON backup file downloaded!", "success");
+    }
+
+    function triggerImportJson() {
+      document.getElementById('importBackupFileInput').click();
+    }
+
+    function handleImportJson(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (!imported || (!imported.quotations && !Array.isArray(imported))) {
+            throw new Error("Invalid backup format");
+          }
+          const quotes = Array.isArray(imported) ? imported : (imported.quotations || []);
+          if (imported.firmSettings && Object.keys(imported.firmSettings).length > 0) {
+            localStorage.setItem('maruti_firm_settings', JSON.stringify(imported.firmSettings));
+            loadSettings();
+          }
+          const existing = JSON.parse(localStorage.getItem('maruti_quotes') || '[]');
+          quotes.forEach(q => {
+            const idx = existing.findIndex(ex => ex.number === q.number);
+            if (idx >= 0) {
+              existing[idx] = q;
+            } else {
+              existing.unshift(q);
+            }
+          });
+          localStorage.setItem('maruti_quotes', JSON.stringify(existing));
+          updateSavedCount();
+          openHistoryModal();
+          showToast(`✅ Successfully imported ${quotes.length} quotations!`, "success", 4000);
+        } catch(err) {
+          console.error(err);
+          showToast("❌ Invalid backup JSON file.", "error");
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    }
+
+    // Profile Settings Management (Always load saved values into form)
+    function getSavedProfile() {
+      return JSON.parse(localStorage.getItem('maruti_firm_settings') || '{}');
     }
 
     function openSettingsModal() {
+      const s = getSavedProfile();
+      if (s.name !== undefined) document.getElementById('s_firmName').value = s.name;
+      if (s.tagline !== undefined) document.getElementById('s_tagline').value = s.tagline;
+      if (s.address !== undefined) document.getElementById('s_address').value = s.address;
+      if (s.phone !== undefined) document.getElementById('s_phone').value = s.phone;
+      if (s.email !== undefined) document.getElementById('s_email').value = s.email;
+      if (s.gstin !== undefined) document.getElementById('s_gstin').value = s.gstin;
+      if (s.bankName !== undefined) document.getElementById('s_bankName').value = s.bankName;
+      if (s.bankAcNo !== undefined) document.getElementById('s_bankAcNo').value = s.bankAcNo;
+      if (s.bankIfsc !== undefined) document.getElementById('s_bankIfsc').value = s.bankIfsc;
+      if (s.bankBranch !== undefined) document.getElementById('s_bankBranch').value = s.bankBranch;
       document.getElementById('settingsModal').classList.add('active');
     }
 
@@ -2147,28 +2386,67 @@
       localStorage.setItem('maruti_firm_settings', JSON.stringify(settings));
       loadSettings();
       closeSettingsModal();
-      alert("Firm profile updated!");
+      showToast("✅ Firm profile & letterhead updated!", "success");
     }
 
     function loadSettings() {
-      const s = JSON.parse(localStorage.getItem('maruti_firm_settings') || 'null');
-      if (!s) return;
-      document.getElementById('p_firmName').innerText = s.name;
-      document.getElementById('p_tagline').innerText = s.tagline;
-      document.getElementById('p_address').innerText = s.address;
-      document.getElementById('p_phone').innerText = s.phone;
-      document.getElementById('p_email').innerText = s.email;
-      document.getElementById('p_gstin').innerText = s.gstin;
-      document.getElementById('p_bankName').innerText = s.bankName;
-      document.getElementById('p_bankAcNo').innerText = s.bankAcNo;
-      document.getElementById('p_bankIfsc').innerText = s.bankIfsc;
-      document.getElementById('p_bankBranch').innerText = s.bankBranch;
+      const s = getSavedProfile();
+      if (s.name) {
+        document.getElementById('p_firmName').innerText = s.name;
+        document.getElementById('s_firmName').value = s.name;
+      }
+      if (s.tagline) {
+        document.getElementById('p_tagline').innerText = s.tagline;
+        document.getElementById('s_tagline').value = s.tagline;
+      }
+      if (s.address) {
+        document.getElementById('p_address').innerText = s.address;
+        document.getElementById('s_address').value = s.address;
+      }
+      if (s.phone) {
+        document.getElementById('p_phone').innerText = s.phone;
+        document.getElementById('s_phone').value = s.phone;
+      }
+      if (s.email) {
+        document.getElementById('p_email').innerText = s.email;
+        document.getElementById('s_email').value = s.email;
+      }
+      if (s.gstin) {
+        document.getElementById('p_gstin').innerText = s.gstin;
+        document.getElementById('s_gstin').value = s.gstin;
+      }
+      if (s.bankName) {
+        document.getElementById('p_bankName').innerText = s.bankName;
+        document.getElementById('s_bankName').value = s.bankName;
+      }
+      if (s.bankAcNo) {
+        document.getElementById('p_bankAcNo').innerText = s.bankAcNo;
+        document.getElementById('s_bankAcNo').value = s.bankAcNo;
+      }
+      if (s.bankIfsc) {
+        document.getElementById('p_bankIfsc').innerText = s.bankIfsc;
+        document.getElementById('s_bankIfsc').value = s.bankIfsc;
+      }
+      if (s.bankBranch) {
+        document.getElementById('p_bankBranch').innerText = s.bankBranch;
+        document.getElementById('s_bankBranch').value = s.bankBranch;
+      }
+
+      // Hide bank box on letterhead if account number is completely empty
+      const bBox = document.getElementById('p_bankBox');
+      if (bBox) {
+        const hasAc = s.bankAcNo && s.bankAcNo.trim() !== '' && s.bankAcNo !== '-';
+        bBox.style.display = hasAc ? 'block' : 'none';
+      }
     }
 
-    // Helper: Indian Currency Number to Words
+    // Number to Indian Currency Words Conversion
     function convertNumberToWords(amount) {
-      if (!amount || amount === 0) return "Rupees Zero Only";
-      const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+      if (amount === 0) return "Rupees Zero Only";
+
+      const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+                    'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen',
+                    'Seventeen', 'Eighteen', 'Nineteen'];
       const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
       function convertGroup(n) {
@@ -2178,11 +2456,13 @@
           n %= 100;
         }
         if (n >= 20) {
-          str += tens[Math.floor(n / 10)] + (n % 10 ? '-' + ones[n % 10] : '') + ' ';
-        } else if (n > 0) {
+          str += tens[Math.floor(n / 10)] + ' ';
+          n %= 10;
+        }
+        if (n > 0) {
           str += ones[n] + ' ';
         }
-        return str.trim();
+        return str;
       }
 
       let n = Math.floor(amount);

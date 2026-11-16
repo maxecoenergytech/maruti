@@ -640,6 +640,7 @@
   <span id="navUserName" style="max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Admin</span>
   <span id="navUserRolePill" class="badge" style="background:#BE9223; color:#fff; font-size:0.65rem; padding:1px 6px; border-radius:10px;">Admin</span>
   </button>
+  <button class="btn btn-outline" style="color:#fff; border-color:rgba(255,255,255,0.4);" onclick="openManageCatalogModal()" title="Product &amp; Services List Catalog Menu">📦 Products (<span id="navProductCount">0</span>)</button>
   <button class="btn btn-outline" style="color:#fff; border-color:rgba(255,255,255,0.4);" onclick="openCustomerModal()" title="Customer Details &amp; Directory Menu">👥 Clients (<span id="clientCount">0</span>)</button>
   <button class="btn btn-outline" style="color:#fff; border-color:rgba(255,255,255,0.4);" onclick="openHistoryModal()">📂 Saved (<span id="savedCount">0</span>)</button>
   <button class="btn btn-outline" style="color:#fff; border-color:rgba(255,255,255,0.4);" onclick="openSettingsModal()">⚙️ Profile</button>
@@ -849,7 +850,7 @@
   </select>
   <button class="btn btn-sm btn-primary" onclick="addNewBlankRow()">+ Blank Line</button>
   <button class="btn btn-sm btn-success" onclick="openAddProductModal()" title="Add a new custom product or service to catalog">+ Add Product</button>
-  <button class="btn btn-sm btn-outline" onclick="openManageCatalogModal()" title="View and manage product catalog">⚙️ Catalog</button>
+  <button class="btn btn-sm btn-outline" onclick="openManageCatalogModal()" title="View and search Product List Catalog">📦 Product List</button>
   </div>
   </div>
   <div class="card-body" style="padding:0;">
@@ -1456,19 +1457,29 @@
   <div class="modal-content" style="max-width:800px;">
   <div class="modal-header" style="background:#3F527D; color:#fff;">
   <div style="display:flex; align-items:center; gap:8px;">
-  <span style="font-weight:700;">📦 Product &amp; Services Catalog</span>
+  <span style="font-weight:700;">📦 Product List &amp; Services Catalog</span>
   <span id="catalogCountBadge" class="badge" style="background:rgba(255,255,255,0.25); color:#fff; font-size:0.75rem;">0 Items</span>
   </div>
   <span style="cursor:pointer; font-size:1.4rem;" onclick="closeManageCatalogModal()">&times;</span>
   </div>
   <div class="modal-body" style="padding:14px;">
-  <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
+  <div style="display:flex; gap:10px; margin-bottom:8px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
   <input type="text" id="catalogSearchInput" class="form-control" style="flex:1 1 240px; min-width:200px;" placeholder="🔍 Search product name or category..." oninput="filterCatalogTable()">
   <select id="catalogCategoryFilter" class="form-control" style="width:auto; min-width:160px;" onchange="filterCatalogTable()">
   <option value="ALL">All Categories</option>
   <option value="CUSTOM">⭐ Custom Products Only</option>
   </select>
   <button class="btn btn-sm btn-success" onclick="openAddProductModal()">+ Add New Product</button>
+  </div>
+
+  <div style="display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px; white-space:nowrap;" id="catalogCategoryPills">
+  <button type="button" class="btn btn-sm btn-primary cat-pill" onclick="setCatalogPillFilter('ALL', this)" style="padding:3px 10px; font-size:0.72rem;">All</button>
+  <button type="button" class="btn btn-sm btn-outline cat-pill" onclick="setCatalogPillFilter('Computer Hardware', this)" style="padding:3px 10px; font-size:0.72rem;">Hardware</button>
+  <button type="button" class="btn btn-sm btn-outline cat-pill" onclick="setCatalogPillFilter('CCTV &amp; Security', this)" style="padding:3px 10px; font-size:0.72rem;">CCTV &amp; Security</button>
+  <button type="button" class="btn btn-sm btn-outline cat-pill" onclick="setCatalogPillFilter('Networking', this)" style="padding:3px 10px; font-size:0.72rem;">Networking</button>
+  <button type="button" class="btn btn-sm btn-outline cat-pill" onclick="setCatalogPillFilter('Software &amp; Antivirus', this)" style="padding:3px 10px; font-size:0.72rem;">Software</button>
+  <button type="button" class="btn btn-sm btn-outline cat-pill" onclick="setCatalogPillFilter('Services &amp; AMC', this)" style="padding:3px 10px; font-size:0.72rem;">Services &amp; AMC</button>
+  <button type="button" class="btn btn-sm btn-outline cat-pill" onclick="setCatalogPillFilter('CUSTOM', this)" style="padding:3px 10px; font-size:0.72rem;">⭐ Custom Only</button>
   </div>
 
   <div style="max-height:55vh; overflow-y:auto; border:1px solid #E2E8F0; border-radius:6px;">
@@ -2080,10 +2091,14 @@
   }
 
   function updateCatalogCountBadge() {
+  const total = Object.keys(CATALOG).length;
   const badge = document.getElementById('catalogCountBadge');
   if (badge) {
-  const total = Object.keys(CATALOG).length;
   badge.innerText = `${total} Products (${customCatalog.length} Custom)`;
+  }
+  const navBadge = document.getElementById('navProductCount');
+  if (navBadge) {
+  navBadge.innerText = total;
   }
   }
 
@@ -2378,8 +2393,43 @@
   }
 
   function filterCatalogTable() {
+  const val = document.getElementById('catalogCategoryFilter')?.value || 'ALL';
+  document.querySelectorAll('#catalogCategoryPills .cat-pill').forEach(el => {
+  const text = el.innerText.trim();
+  const isMatch = (val === 'ALL' && text === 'All') ||
+  (val === 'CUSTOM' && text.includes('Custom')) ||
+  (val === 'Computer Hardware' && text === 'Hardware') ||
+  (val === 'CCTV & Security' && text.includes('CCTV')) ||
+  (val === 'Networking' && text === 'Networking') ||
+  (val === 'Software & Antivirus' && text === 'Software') ||
+  (val === 'Services & AMC' && text.includes('Services'));
+  if (isMatch) {
+  el.classList.remove('btn-outline');
+  el.classList.add('btn-primary');
+  } else {
+  el.classList.remove('btn-primary');
+  el.classList.add('btn-outline');
+  }
+  });
   renderCatalogManagementTable();
   }
+
+  function setCatalogPillFilter(cat, btn) {
+  const select = document.getElementById('catalogCategoryFilter');
+  if (select) select.value = cat;
+  document.querySelectorAll('#catalogCategoryPills .cat-pill').forEach(el => {
+  el.classList.remove('btn-primary');
+  el.classList.add('btn-outline');
+  });
+  if (btn) {
+  btn.classList.remove('btn-outline');
+  btn.classList.add('btn-primary');
+  }
+  renderCatalogManagementTable();
+  }
+
+  const openProductListModal = openManageCatalogModal;
+  const closeProductListModal = closeManageCatalogModal;
 
   function editCustomProduct(id) {
   const prod = customCatalog.find(p => p.id === id);

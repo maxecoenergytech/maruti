@@ -1454,29 +1454,21 @@
 
   <!-- Save Success Dialog Modal -->
   <div class="modal" id="saveSuccessModal">
-    <div class="modal-content" style="max-width:500px;">
+    <div class="modal-content" style="max-width:480px;">
       <div class="modal-header" style="background:#16A34A; color:#fff;">
         <span style="font-weight:700;">✅ Quotation Saved!</span>
         <span style="cursor:pointer; font-size:1.4rem;" onclick="closeSaveSuccessModal()">&times;</span>
       </div>
-      <div class="modal-body" style="padding:18px;">
-        <div style="font-size:0.95rem; margin-bottom:12px;">
+      <div class="modal-body" style="padding:20px;">
+        <div style="font-size:0.95rem; color:#1E293B; line-height:1.5;">
           Quotation <strong id="saveSuccessQuoteNo">MSS-0001</strong> has been successfully saved to your browser history.
         </div>
-        <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:6px; padding:12px; font-size:0.82rem; color:#166534; margin-bottom:14px;">
-          💡 <strong>Tip:</strong> Would you like to share this quote directly with the client on WhatsApp right now?
-        </div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn btn-secondary" style="flex:1;" onclick="closeSaveSuccessModal(); printQuotation();">
-            🖨️ Print / Save as PDF
-          </button>
-          <button class="btn btn-success" style="flex:1;" onclick="closeSaveSuccessModal(); shareWhatsAppWithPdf();">
-            💬 Share via WhatsApp
-          </button>
-        </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline btn-sm" onclick="closeSaveSuccessModal()">Done</button>
+      <div class="modal-footer" style="display:flex; gap:10px; justify-content:flex-end;">
+        <button class="btn btn-secondary" onclick="closeSaveSuccessModal(); printQuotation();">
+          🖨️ Print / Save as PDF
+        </button>
+        <button class="btn btn-outline" onclick="closeSaveSuccessModal()">Done</button>
       </div>
     </div>
   </div>

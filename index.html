@@ -218,6 +218,60 @@
     .status-badge-confirmed { background: #DCFCE7; color: #166534; border: 1px solid #86EFAC; }
     .status-badge-sent { background: #E0E7FF; color: #3730A3; border: 1px solid #A5B4FC; }
     .status-badge-expired { background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
+    .status-badge-invoiced { background: #CCFBF1; color: #0F766E; border: 1px solid #5EEAD4; }
+    .status-badge-paid { background: #DCFCE7; color: #15803D; border: 1px solid #86EFAC; }
+    .status-badge-partial { background: #FEF9C3; color: #854D0E; border: 1px solid #FDE047; }
+    
+    /* Document Type Selector Pills */
+    .doc-type-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .doc-pill {
+      background: #FFFFFF;
+      border: 1.5px solid #CBD5E1;
+      color: #475569;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+    .doc-pill:hover {
+      border-color: #3F527D;
+      color: #1E293B;
+      background: #F8FAFC;
+    }
+    .doc-pill.active {
+      background: #1E293B;
+      border-color: #1E293B;
+      color: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(30, 41, 59, 0.2);
+    }
+    .doc-pill.active-invoice {
+      background: #0F766E;
+      border-color: #0F766E;
+      color: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(15, 118, 110, 0.25);
+    }
+    .doc-pill.active-bill {
+      background: #4338CA;
+      border-color: #4338CA;
+      color: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(67, 56, 202, 0.25);
+    }
+    .doc-pill.active-challan {
+      background: #854D0E;
+      border-color: #854D0E;
+      color: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(133, 77, 14, 0.25);
+    }
     .status-select-pill {
       background: transparent;
       border: none;
@@ -647,6 +701,7 @@
       <button class="btn btn-outline" id="navBtnProducts" style="color:#fff; border-color:rgba(255,255,255,0.4);" onclick="openManageCatalogModal()" title="Product &amp; Services List Catalog Menu">📦 Products (<span id="navProductCount">0</span>)</button>
       <button class="btn btn-outline" id="navBtnClients" style="color:#fff; border-color:rgba(255,255,255,0.4);" onclick="openCustomerModal()" title="Customer Details &amp; Directory Menu">👥 Clients (<span id="clientCount">0</span>)</button>
       <button class="btn btn-outline" id="navBtnSaved" style="color:#fff; border-color:rgba(255,255,255,0.4);" onclick="openHistoryModal()">📂 Saved (<span id="savedCount">0</span>)</button>
+      <button class="btn btn-outline" id="navBtnAnalytics" style="color:#fff; border-color:rgba(255,255,255,0.4);" onclick="openAnalyticsModal()" title="Client History &amp; Business Analytics Dashboard">📊 Analytics</button>
       <button class="btn btn-outline" id="navBtnBackup" style="color:#fff; border-color:rgba(255,255,255,0.4);" onclick="openBackupModal()" title="Data Backup &amp; Restore Center">💾 Backup</button>
       <span id="navCustomButtonsContainer" style="display:inline-flex; gap:6px;"></span>
       <button class="btn btn-outline" id="navBtnSettings" style="color:#fff; border-color:rgba(255,255,255,0.4);" onclick="openSettingsModal()" title="Central Command &amp; Settings Master Panel">⚙️ Settings</button>
@@ -736,23 +791,37 @@
               </div>
             </div>
             <div class="card-body">
+              <!-- Document Type Selection Pills -->
+              <div class="form-group" style="margin-bottom:14px; background:#F8FAFC; border:1px solid #CBD5E1; border-radius:6px; padding:10px 12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                  <label class="form-label" style="font-weight:700; color:#1E293B; margin:0;">📋 Document Type:</label>
+                  <span id="docTypeHint" style="font-size:0.7rem; font-weight:700; color:#3F527D;">Standard Sales Quotation</span>
+                </div>
+                <div class="doc-type-pills">
+                  <button type="button" class="doc-pill active" id="btnDocQuotation" onclick="setDocType('quotation')">📝 Quotation</button>
+                  <button type="button" class="doc-pill" id="btnDocInvoice" onclick="setDocType('invoice')">🧾 Tax Invoice</button>
+                  <button type="button" class="doc-pill" id="btnDocBill" onclick="setDocType('bill_of_supply')">📦 Bill of Supply</button>
+                  <button type="button" class="doc-pill" id="btnDocChallan" onclick="setDocType('delivery_challan')">🚚 Delivery Challan</button>
+                </div>
+              </div>
+
               <div class="grid grid-2">
                 <div class="form-group">
                   <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <label class="form-label">Quotation Number *</label>
-                    <button type="button" class="btn btn-sm btn-outline" style="font-size:0.7rem; padding:1px 6px;" onclick="assignNextSeqQuoteNumber()" title="Generate sequential quote number for current financial year">⚡ Auto Seq</button>
+                    <label class="form-label" id="docNumberLabel">Quotation Number *</label>
+                    <button type="button" class="btn btn-sm btn-outline" style="font-size:0.7rem; padding:1px 6px;" onclick="assignNextSeqQuoteNumber()" title="Generate sequential reference number">⚡ Auto Seq</button>
                   </div>
                   <input type="text" id="quoteNumber" class="form-control" value="MSS/2026-27/0001" oninput="recalculate()">
-                  <span style="font-size:0.7rem; color:var(--text-muted);">Auto-increments sequentially per financial year</span>
+                  <span style="font-size:0.7rem; color:var(--text-muted);" id="docNumberSubtext">Auto-increments sequentially per financial year</span>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Quotation Date</label>
+                  <label class="form-label" id="docDateLabel">Quotation Date</label>
                   <input type="date" id="quoteDate" class="form-control" onchange="recalculate()">
                 </div>
               </div>
               <div class="grid grid-2" style="margin-top:14px;">
                 <div class="form-group">
-                  <label class="form-label">Valid Until</label>
+                  <label class="form-label" id="docValidLabel">Valid Until</label>
                   <input type="date" id="validUntil" class="form-control" onchange="recalculate()">
                 </div>
                 <div class="form-group">
@@ -761,6 +830,49 @@
                     <option value="intra">Intra-State (Assam: CGST + SGST 50/50)</option>
                     <option value="inter">Inter-State (IGST 100%)</option>
                   </select>
+                </div>
+              </div>
+
+              <!-- Tax Invoice & Delivery Challan Extra Fields -->
+              <div id="invoiceFieldsContainer" style="display:none; margin-top:14px; background:#F0FDFA; border:1px solid #99F6E4; border-radius:6px; padding:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <span style="font-size:0.78rem; font-weight:800; color:#0F766E; text-transform:uppercase; letter-spacing:0.5px;">🧾 Tax Invoice &amp; Payment Specifications</span>
+                  <span class="badge" style="background:#0F766E; color:#fff; font-size:0.65rem; padding:2px 8px;">GST Compliance</span>
+                </div>
+                <div class="grid grid-3">
+                  <div class="form-group">
+                    <label class="form-label" style="font-size:0.73rem;">Buyer PO / Work Order Ref</label>
+                    <input type="text" id="invoicePoNumber" class="form-control" placeholder="e.g. PO/2026/892" oninput="recalculate()">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" style="font-size:0.73rem;">PO Date</label>
+                    <input type="date" id="invoicePoDate" class="form-control" onchange="recalculate()">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" style="font-size:0.73rem;">Payment Terms</label>
+                    <select id="invoicePaymentTerms" class="form-control" onchange="recalculate()">
+                      <option value="Due on Receipt">Due on Receipt</option>
+                      <option value="Net 7 Days">Net 7 Days</option>
+                      <option value="Net 15 Days">Net 15 Days</option>
+                      <option value="Net 30 Days">Net 30 Days</option>
+                      <option value="50% Advance, Balance on Delivery">50% Advance, Balance on Delivery</option>
+                      <option value="100% Advance Payment">100% Advance Payment</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="grid grid-2" style="margin-top:10px;">
+                  <div class="form-group">
+                    <label class="form-label" style="font-size:0.73rem;">Payment Status</label>
+                    <select id="invoicePaymentStatus" class="form-control" onchange="recalculate()">
+                      <option value="unpaid">⏳ Unpaid / Pending</option>
+                      <option value="paid">✅ Fully Paid</option>
+                      <option value="partial">🌗 Partially Paid</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" style="font-size:0.73rem;">E-Way Bill No. (Optional)</label>
+                    <input type="text" id="invoiceEwayBill" class="form-control" placeholder="Optional for transit &gt; ₹50k" oninput="recalculate()">
+                  </div>
                 </div>
               </div>
 
@@ -1022,16 +1134,21 @@
                 </div>
                 <div style="text-align:right; min-width:160px;">
                   <div style="border: 2px solid #1E293B; background: #F8FAFC; padding: 6px 16px; border-radius: 4px; text-align: center; display: inline-block;">
-                    <h2 style="font-size:1.42rem; color:#1E293B; font-weight:800; letter-spacing:2px; margin:0; line-height:1.1;">QUOTATION</h2>
+                    <h2 style="font-size:1.42rem; color:#1E293B; font-weight:800; letter-spacing:2px; margin:0; line-height:1.1;" id="p_docTypeTitle">QUOTATION</h2>
                     <div style="margin-top:4px;"><span id="p_statusPill" class="badge status-badge-draft">DRAFT</span></div>
                   </div>
                 </div>
               </div>
 
+              <!-- Statutory Note for Tax Invoice / Goods Movement -->
+              <div id="p_invoiceStatutoryNote" style="display:none; padding:4px 12px; background:#F8FAFC; border-bottom:1.5px solid #1E293B; font-size:0.67rem; color:#334155; text-align:center;">
+                Tax is payable on reverse charge basis: <strong>NO</strong> &bull; Supply: <strong>Taxable B2B / B2C</strong> &bull; Original for Recipient
+              </div>
+
               <!-- 2. Client & Quotation Reference Box Grid -->
               <div style="display:grid; grid-template-columns:1.15fr 0.85fr; border-bottom:2px solid #1E293B; background:#FFFFFF;">
                 <div style="border-right:2px solid #1E293B; display:flex; flex-direction:column;">
-                  <div style="padding:5px 12px; background:#F1F5F9; border-bottom:1px solid #1E293B; font-weight:700; color:#1E293B; font-size:0.70rem; text-transform:uppercase; letter-spacing:0.5px;">Quotation For (Client / Buyer):</div>
+                  <div style="padding:5px 12px; background:#F1F5F9; border-bottom:1px solid #1E293B; font-weight:700; color:#1E293B; font-size:0.70rem; text-transform:uppercase; letter-spacing:0.5px;" id="p_docBuyerHeader">Quotation For (Client / Buyer):</div>
                   <div style="padding:8px 12px; flex-grow:1;">
                     <div style="font-size:0.92rem; font-weight:800; color:#0F172A;" id="p_clientName">M/s Customer Name</div>
                     <div id="p_contactPerson" style="font-size:0.75rem; color:#334155; margin-top:2px;">Attn: Contact Person</div>
@@ -1040,19 +1157,23 @@
                   </div>
                 </div>
                 <div style="display:flex; flex-direction:column; background:#F8FAFC;">
-                  <div style="padding:5px 12px; background:#F1F5F9; border-bottom:1px solid #1E293B; font-weight:700; color:#1E293B; font-size:0.70rem; text-transform:uppercase; letter-spacing:0.5px; text-align:right;">Quotation Details:</div>
+                  <div style="padding:5px 12px; background:#F1F5F9; border-bottom:1px solid #1E293B; font-weight:700; color:#1E293B; font-size:0.70rem; text-transform:uppercase; letter-spacing:0.5px; text-align:right;" id="p_docDetailsHeader">Quotation Details:</div>
                   <table style="width:100%; font-size:0.74rem; border-collapse:collapse; flex-grow:1;">
                     <tr>
-                      <td style="padding:3px 10px; color:#475569; width:110px; border-bottom:1px solid #94A3B8; border-right:1px solid #94A3B8;">Quote Ref No:</td>
+                      <td style="padding:3px 10px; color:#475569; width:110px; border-bottom:1px solid #94A3B8; border-right:1px solid #94A3B8;" id="p_docRefLabel">Quote Ref No:</td>
                       <td style="padding:3px 10px; text-align:right; border-bottom:1px solid #94A3B8;"><strong id="p_quoteNo" style="color:#1E293B;">MSS/2026-27/0001</strong></td>
                     </tr>
                     <tr>
-                      <td style="padding:3px 10px; color:#475569; border-bottom:1px solid #94A3B8; border-right:1px solid #94A3B8;">Quotation Date:</td>
+                      <td style="padding:3px 10px; color:#475569; border-bottom:1px solid #94A3B8; border-right:1px solid #94A3B8;" id="p_docDateLabel">Quotation Date:</td>
                       <td style="padding:3px 10px; text-align:right; border-bottom:1px solid #94A3B8;"><span id="p_quoteDate" style="font-weight:600;"></span></td>
                     </tr>
-                    <tr>
-                      <td style="padding:3px 10px; color:#475569; border-bottom:1px solid #94A3B8; border-right:1px solid #94A3B8;">Valid Until:</td>
+                    <tr id="p_rowValidOrDue">
+                      <td style="padding:3px 10px; color:#475569; border-bottom:1px solid #94A3B8; border-right:1px solid #94A3B8;" id="p_docValidLabel">Valid Until:</td>
                       <td style="padding:3px 10px; text-align:right; border-bottom:1px solid #94A3B8;"><span id="p_validUntil" style="font-weight:600;"></span></td>
+                    </tr>
+                    <tr id="p_rowPoRef" style="display:none;">
+                      <td style="padding:3px 10px; color:#475569; border-bottom:1px solid #94A3B8; border-right:1px solid #94A3B8;">PO Ref / Terms:</td>
+                      <td style="padding:3px 10px; text-align:right; border-bottom:1px solid #94A3B8;"><span id="p_docPoRef" style="font-weight:600;">-</span></td>
                     </tr>
                     <tr>
                       <td style="padding:3px 10px; color:#475569; border-bottom:1px solid #94A3B8; border-right:1px solid #94A3B8;">Client GSTIN:</td>
@@ -1260,6 +1381,14 @@
               </div>
               <input type="text" id="cfgLabelBackup" class="form-control" style="font-size:0.75rem; padding:4px 8px;" placeholder="Label" onchange="saveMenuConfig()">
             </div>
+
+            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label style="font-weight:700; font-size:0.82rem; color:#334155;">📊 Analytics Menu</label>
+                <input type="checkbox" id="cfgMenuAnalytics" onchange="saveMenuConfig()">
+              </div>
+              <input type="text" id="cfgLabelAnalytics" class="form-control" style="font-size:0.75rem; padding:4px 8px;" placeholder="Label" onchange="saveMenuConfig()">
+            </div>
           </div>
 
           <!-- Custom Menus & External Links -->
@@ -1404,24 +1533,165 @@
     </div>
   </div>
 
+  <!-- Client History & Business Analytics Dashboard Modal -->
+  <div class="modal" id="analyticsModal">
+    <div class="modal-content" style="max-width:960px; width:95%; max-height:92vh; display:flex; flex-direction:column; overflow:hidden;">
+      <div class="modal-header" style="background:linear-gradient(90deg, #1E293B, #3F527D); color:#fff; padding:12px 18px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:1.05rem; font-weight:800;">📊 Client History &amp; Business Analytics</span>
+          <span class="badge" style="background:#BE9223; color:#fff; font-size:0.68rem; padding:2px 8px; border-radius:10px;">Executive Dashboard</span>
+        </div>
+        <span style="cursor:pointer; font-size:1.4rem;" onclick="closeAnalyticsModal()">&times;</span>
+      </div>
+      
+      <div class="modal-body" style="padding:18px; overflow-y:auto; flex-grow:1;">
+        <!-- Hero KPI Metrics Grid -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:18px;">
+          <!-- Card 1: Total Quotations & Pipeline -->
+          <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-left:4px solid #3F527D; border-radius:8px; padding:12px 14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.75rem; font-weight:700; color:#64748B; text-transform:uppercase;">Quotation Pipeline</span>
+              <span style="font-size:1.1rem;">💼</span>
+            </div>
+            <div style="font-size:1.35rem; font-weight:800; color:#1E293B; margin-top:4px;" id="anTotalPipelineValue">₹ 0</div>
+            <div style="font-size:0.74rem; color:#64748B; margin-top:2px;"><strong id="anTotalQuotesCount">0</strong> quotes created</div>
+          </div>
+
+          <!-- Card 2: Converted Invoices & Revenue -->
+          <div style="background:#F0FDFA; border:1px solid #99F6E4; border-left:4px solid #0F766E; border-radius:8px; padding:12px 14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.75rem; font-weight:700; color:#0F766E; text-transform:uppercase;">Converted Revenue</span>
+              <span style="font-size:1.1rem;">🧾</span>
+            </div>
+            <div style="font-size:1.35rem; font-weight:800; color:#0F766E; margin-top:4px;" id="anTotalInvoicedValue">₹ 0</div>
+            <div style="font-size:0.74rem; color:#0F766E; margin-top:2px;"><strong id="anTotalInvoicesCount">0</strong> tax invoices issued</div>
+          </div>
+
+          <!-- Card 3: Win / Conversion Rate -->
+          <div style="background:#FEFCE8; border:1px solid #FEF08A; border-left:4px solid #CA8A04; border-radius:8px; padding:12px 14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.75rem; font-weight:700; color:#854D0E; text-transform:uppercase;">Win / Conversion Rate</span>
+              <span style="font-size:1.1rem;">🎯</span>
+            </div>
+            <div style="font-size:1.35rem; font-weight:800; color:#854D0E; margin-top:4px;" id="anConversionRate">0.0%</div>
+            <div style="font-size:0.74rem; color:#854D0E; margin-top:2px;">Quote-to-invoice closing ratio</div>
+          </div>
+
+          <!-- Card 4: Active Clients Directory -->
+          <div style="background:#F5F3FF; border:1px solid #DDD6FE; border-left:4px solid #7C3AED; border-radius:8px; padding:12px 14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.75rem; font-weight:700; color:#6D28D9; text-transform:uppercase;">Client Accounts</span>
+              <span style="font-size:1.1rem;">👥</span>
+            </div>
+            <div style="font-size:1.35rem; font-weight:800; color:#6D28D9; margin-top:4px;" id="anActiveClientsCount">0</div>
+            <div style="font-size:0.74rem; color:#6D28D9; margin-top:2px;">Enterprise &amp; retail accounts</div>
+          </div>
+        </div>
+
+        <!-- Quotation Pipeline Status Chips -->
+        <div style="background:#F1F5F9; border-radius:8px; padding:10px 14px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <span style="font-size:0.78rem; font-weight:700; color:#475569; text-transform:uppercase;">Pipeline Stage Breakdown:</span>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <span class="badge status-badge-draft" style="font-size:0.74rem; padding:4px 10px;">Drafts: <strong id="anStatusDraftCount">0</strong></span>
+            <span class="badge status-badge-sent" style="font-size:0.74rem; padding:4px 10px;">Sent: <strong id="anStatusSentCount">0</strong></span>
+            <span class="badge status-badge-confirmed" style="font-size:0.74rem; padding:4px 10px;">Converted / Won: <strong id="anStatusWonCount">0</strong></span>
+            <span class="badge status-badge-expired" style="font-size:0.74rem; padding:4px 10px;">Expired / Lost: <strong id="anStatusLostCount">0</strong></span>
+          </div>
+        </div>
+
+        <!-- Search & Client History Filter -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+          <div style="font-weight:700; color:#1E293B; font-size:0.92rem;">Client Accounts &amp; Lifetime Order History</div>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="analyticsSearchInput" class="form-control" style="font-size:0.8rem; padding:5px 10px; width:220px;" placeholder="🔍 Search client or GSTIN..." oninput="renderAnalyticsClientTable()">
+          </div>
+        </div>
+
+        <!-- Client Performance & Lifetime Value Table -->
+        <div style="border:1px solid #CBD5E1; border-radius:6px; overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.8rem;">
+            <thead style="background:#F8FAFC; border-bottom:2px solid #CBD5E1;">
+              <tr>
+                <th style="padding:8px 12px; text-align:left;">Client Name</th>
+                <th style="padding:8px 12px; text-align:left;">GSTIN / State</th>
+                <th style="padding:8px 12px; text-align:center;">Quotes</th>
+                <th style="padding:8px 12px; text-align:center;">Invoices</th>
+                <th style="padding:8px 12px; text-align:right;">Total Quoted (₹)</th>
+                <th style="padding:8px 12px; text-align:right;">Total Invoiced (₹)</th>
+                <th style="padding:8px 12px; text-align:center;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="analyticsClientTableBody">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Individual Client Timeline View (Shown when client selected) -->
+        <div id="analyticsClientTimelineDrawer" style="display:none; margin-top:18px; background:#F8FAFC; border:1.5px solid #3F527D; border-radius:8px; padding:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div>
+              <span style="font-weight:800; color:#1E293B; font-size:0.95rem;" id="anTimelineClientName">Client Timeline</span>
+              <div style="font-size:0.75rem; color:#64748B;" id="anTimelineClientSubtitle">Complete document history</div>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="closeClientTimelineDrawer()">&times; Close Timeline</button>
+          </div>
+          <div style="border:1px solid #CBD5E1; border-radius:6px; overflow-x:auto; background:#fff;">
+            <table style="width:100%; border-collapse:collapse; font-size:0.78rem;">
+              <thead style="background:#F1F5F9; border-bottom:1px solid #CBD5E1;">
+                <tr>
+                  <th style="padding:6px 10px; text-align:left;">Doc No</th>
+                  <th style="padding:6px 10px; text-align:left;">Type</th>
+                  <th style="padding:6px 10px; text-align:left;">Date</th>
+                  <th style="padding:6px 10px; text-align:left;">Prepared By</th>
+                  <th style="padding:6px 10px; text-align:right;">Amount (₹)</th>
+                  <th style="padding:6px 10px; text-align:center;">Status</th>
+                  <th style="padding:6px 10px; text-align:center;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="anTimelineTableBody">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:0.75rem; color:#64748B;">💡 Metrics calculate in real-time from your browser local storage.</span>
+        <button class="btn btn-outline btn-sm" onclick="closeAnalyticsModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Saved Quotations & Backup Modal -->
   <div class="modal" id="historyModal">
-    <div class="modal-content" style="max-width:780px;">
+    <div class="modal-content" style="max-width:840px;">
       <div class="modal-header">
-        <span>📂 Saved Quotations &amp; Backups</span>
+        <span>📂 Saved Documents &amp; Quotations History</span>
         <span style="cursor:pointer;" onclick="closeHistoryModal()">&times;</span>
       </div>
-      <!-- Userwise Staff Filter Bar -->
+      <!-- Userwise Staff & Document Type Filter Bar -->
       <div style="padding:10px 14px; background:#F8FAFC; border-bottom:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <label style="font-size:0.78rem; font-weight:700; color:#475569;">👤 Filter by Staff:</label>
-          <select id="historyStaffFilter" class="form-control" style="width:auto; min-width:190px; padding:4px 8px; font-size:0.8rem;" onchange="renderHistoryTable()">
-            <option value="ALL">👥 All Staff Quotations</option>
-            <option value="MY">👤 My Quotations Only</option>
-          </select>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <label style="font-size:0.78rem; font-weight:700; color:#475569;">👤 Staff:</label>
+            <select id="historyStaffFilter" class="form-control" style="width:auto; min-width:160px; padding:4px 8px; font-size:0.8rem;" onchange="renderHistoryTable()">
+              <option value="ALL">👥 All Staff</option>
+              <option value="MY">👤 My Docs Only</option>
+            </select>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <label style="font-size:0.78rem; font-weight:700; color:#475569;">📋 Type:</label>
+            <select id="historyDocTypeFilter" class="form-control" style="width:auto; min-width:140px; padding:4px 8px; font-size:0.8rem;" onchange="renderHistoryTable()">
+              <option value="ALL">All Documents</option>
+              <option value="quotation">Quotations Only</option>
+              <option value="invoice">Tax Invoices Only</option>
+            </select>
+          </div>
         </div>
         <div style="font-size:0.75rem; color:#64748B;">
-          Showing <span id="historyFilteredCount">0</span> quotation(s)
+          Showing <span id="historyFilteredCount">0</span> document(s)
         </div>
       </div>
       <div class="modal-body" style="padding:0;">
@@ -3146,6 +3416,7 @@
           </td>
           <td style="padding:8px 10px; text-align:center; white-space:nowrap;">
             <button class="btn btn-sm btn-primary" style="padding:3px 8px; font-size:0.72rem; margin-right:4px;" onclick="applyCustomerFromModal('${c.id}')" title="Apply to current quotation">➕ Quote</button>
+            <button class="btn btn-sm btn-outline" style="color:#6D28D9; border-color:#DDD6FE; padding:3px 6px; font-size:0.72rem; margin-right:4px;" onclick="viewClientHistoryFromDirectory('${c.id}')" title="View Quotation &amp; Invoice History">📊 History</button>
             <button class="btn btn-sm btn-outline" style="padding:3px 6px; font-size:0.72rem; margin-right:4px;" onclick="editCustomerFromModal('${c.id}')" title="Edit customer">✏️</button>
             ${delBtnHtml}
           </td>
@@ -3228,11 +3499,92 @@
       }
     }
 
-    function assignNextSeqQuoteNumber() {
-      const nextNo = generateNextQuoteNumber();
-      document.getElementById('quoteNumber').value = nextNo;
+    let currentDocType = 'quotation'; // 'quotation' | 'invoice' | 'bill_of_supply' | 'delivery_challan'
+
+    function generateNextInvoiceNumber() {
+      const fy = getFinancialYear();
+      const seqKey = `maruti_inv_seq_${fy}`;
+      let nextSeq = parseInt(localStorage.getItem(seqKey) || '0', 10) + 1;
+      return `MSS/INV/${fy}/${String(nextSeq).padStart(4, '0')}`;
+    }
+
+    function commitInvoiceNumberSeq(invNo) {
+      const match = (invNo || '').match(/^MSS\/INV\/(\d{4}-\d{2})\/(\d{4})$/);
+      if (match) {
+        const fy = match[1];
+        const num = parseInt(match[2], 10);
+        const seqKey = `maruti_inv_seq_${fy}`;
+        const current = parseInt(localStorage.getItem(seqKey) || '0', 10);
+        if (num > current) {
+          localStorage.setItem(seqKey, num);
+        }
+      }
+    }
+
+    function setDocType(type, autoAssignNumber = true) {
+      currentDocType = type;
+      
+      const pills = [
+        { id: 'btnDocQuotation', type: 'quotation', activeClass: 'active' },
+        { id: 'btnDocInvoice', type: 'invoice', activeClass: 'active-invoice' },
+        { id: 'btnDocBill', type: 'bill_of_supply', activeClass: 'active-bill' },
+        { id: 'btnDocChallan', type: 'delivery_challan', activeClass: 'active-challan' }
+      ];
+      
+      pills.forEach(p => {
+        const el = document.getElementById(p.id);
+        if (el) el.className = (p.type === type) ? `doc-pill ${p.activeClass}` : 'doc-pill';
+      });
+
+      const invBox = document.getElementById('invoiceFieldsContainer');
+      if (invBox) {
+        invBox.style.display = (type === 'invoice' || type === 'delivery_challan') ? 'block' : 'none';
+      }
+
+      const hintEl = document.getElementById('docTypeHint');
+      const numLabel = document.getElementById('docNumberLabel');
+      const numSub = document.getElementById('docNumberSubtext');
+      const numInput = document.getElementById('quoteNumber');
+
+      if (type === 'invoice') {
+        if (hintEl) hintEl.innerText = 'GST Tax Invoice (B2B / B2C Registered)';
+        if (numLabel) numLabel.innerText = 'Tax Invoice Number *';
+        if (numSub) numSub.innerText = 'Sequenced official GST Tax Invoice number';
+        if (autoAssignNumber && numInput && (!numInput.value || !numInput.value.includes('INV'))) {
+          numInput.value = generateNextInvoiceNumber();
+        }
+      } else if (type === 'bill_of_supply') {
+        if (hintEl) hintEl.innerText = 'Bill of Supply (Composition / Exempt)';
+        if (numLabel) numLabel.innerText = 'Bill of Supply Number *';
+        if (numSub) numSub.innerText = 'Official Bill of Supply document sequence';
+      } else if (type === 'delivery_challan') {
+        if (hintEl) hintEl.innerText = 'Delivery Challan (Goods in Transit)';
+        if (numLabel) numLabel.innerText = 'Delivery Challan No *';
+        if (numSub) numSub.innerText = 'Dispatch and delivery note reference';
+      } else {
+        if (hintEl) hintEl.innerText = 'Standard Sales Quotation';
+        if (numLabel) numLabel.innerText = 'Quotation Number *';
+        if (numSub) numSub.innerText = 'Auto-increments sequentially per financial year';
+        if (autoAssignNumber && numInput && numInput.value.includes('INV')) {
+          numInput.value = generateNextQuoteNumber();
+        }
+      }
+
       recalculate();
-      showToast(`Assigned sequential quote number: ${nextNo}`, "info", 3000);
+    }
+
+    function assignNextSeqQuoteNumber() {
+      if (currentDocType === 'invoice') {
+        const nextNo = generateNextInvoiceNumber();
+        document.getElementById('quoteNumber').value = nextNo;
+        recalculate();
+        showToast(`Assigned sequential Tax Invoice number: ${nextNo}`, "info", 3000);
+      } else {
+        const nextNo = generateNextQuoteNumber();
+        document.getElementById('quoteNumber').value = nextNo;
+        recalculate();
+        showToast(`Assigned sequential quote number: ${nextNo}`, "info", 3000);
+      }
     }
 
     // Step-by-Step Wizard Navigation
@@ -3621,6 +3973,56 @@
       document.getElementById('p_quoteNo').innerText = document.getElementById('quoteNumber').value;
       document.getElementById('p_quoteDate').innerText = formatDate(document.getElementById('quoteDate').value);
       document.getElementById('p_validUntil').innerText = formatDate(document.getElementById('validUntil').value);
+
+      // Document Type Sync for Printable Sheet
+      const docTitle = document.getElementById('p_docTypeTitle');
+      const buyerHeader = document.getElementById('p_docBuyerHeader');
+      const detailsHeader = document.getElementById('p_docDetailsHeader');
+      const refLabel = document.getElementById('p_docRefLabel');
+      const dateLabel = document.getElementById('p_docDateLabel');
+      const statNote = document.getElementById('p_invoiceStatutoryNote');
+      const poRow = document.getElementById('p_rowPoRef');
+      const poVal = document.getElementById('p_docPoRef');
+
+      if (currentDocType === 'invoice') {
+        if (docTitle) docTitle.innerText = 'TAX INVOICE';
+        if (buyerHeader) buyerHeader.innerText = 'Billed To (Client / Buyer):';
+        if (detailsHeader) detailsHeader.innerText = 'Tax Invoice Details:';
+        if (refLabel) refLabel.innerText = 'Invoice No:';
+        if (dateLabel) dateLabel.innerText = 'Invoice Date:';
+        if (statNote) statNote.style.display = 'block';
+        
+        const poNum = document.getElementById('invoicePoNumber')?.value || '';
+        const pTerms = document.getElementById('invoicePaymentTerms')?.value || 'Due on Receipt';
+        if (poRow) {
+          poRow.style.display = 'table-row';
+          if (poVal) poVal.innerText = poNum ? `${poNum} (${pTerms})` : pTerms;
+        }
+      } else if (currentDocType === 'bill_of_supply') {
+        if (docTitle) docTitle.innerText = 'BILL OF SUPPLY';
+        if (buyerHeader) buyerHeader.innerText = 'Billed To (Buyer):';
+        if (detailsHeader) detailsHeader.innerText = 'Bill Details:';
+        if (refLabel) refLabel.innerText = 'Bill No:';
+        if (dateLabel) dateLabel.innerText = 'Bill Date:';
+        if (statNote) statNote.style.display = 'none';
+        if (poRow) poRow.style.display = 'none';
+      } else if (currentDocType === 'delivery_challan') {
+        if (docTitle) docTitle.innerText = 'DELIVERY CHALLAN';
+        if (buyerHeader) buyerHeader.innerText = 'Consignee (Deliver To):';
+        if (detailsHeader) detailsHeader.innerText = 'Challan Details:';
+        if (refLabel) refLabel.innerText = 'Challan No:';
+        if (dateLabel) dateLabel.innerText = 'Challan Date:';
+        if (statNote) statNote.style.display = 'none';
+        if (poRow) poRow.style.display = 'none';
+      } else {
+        if (docTitle) docTitle.innerText = 'QUOTATION';
+        if (buyerHeader) buyerHeader.innerText = 'Quotation For (Client / Buyer):';
+        if (detailsHeader) detailsHeader.innerText = 'Quotation Details:';
+        if (refLabel) refLabel.innerText = 'Quote Ref No:';
+        if (dateLabel) dateLabel.innerText = 'Quotation Date:';
+        if (statNote) statNote.style.display = 'none';
+        if (poRow) poRow.style.display = 'none';
+      }
 
       document.getElementById('p_clientName').innerText = document.getElementById('clientName').value || "M/s Valued Customer";
       document.getElementById('p_contactPerson').innerText = document.getElementById('contactPerson').value ? "Attn: " + document.getElementById('contactPerson').value : "";
@@ -4119,6 +4521,14 @@
         items: items,
         terms: document.getElementById('termsConditions').value,
         includeSignature: document.getElementById('toggleSignatureSwitch')?.checked || false,
+        docType: currentDocType || 'quotation',
+        invoiceDetails: (currentDocType === 'invoice' || currentDocType === 'delivery_challan') ? {
+          poNumber: document.getElementById('invoicePoNumber')?.value || '',
+          poDate: document.getElementById('invoicePoDate')?.value || '',
+          paymentTerms: document.getElementById('invoicePaymentTerms')?.value || 'Due on Receipt',
+          paymentStatus: document.getElementById('invoicePaymentStatus')?.value || 'unpaid',
+          ewayBill: document.getElementById('invoiceEwayBill')?.value || ''
+        } : null,
         savedAt: new Date().toISOString()
       };
 
@@ -4127,15 +4537,20 @@
       
       // Warn before overwriting an existing quotation number!
       if (existingIdx >= 0) {
-        const ok = confirm(`Quotation "${quote.number}" already exists in your saved history.\n\nDo you want to overwrite it with your current changes?`);
+        const docLabel = (currentDocType === 'invoice') ? 'Tax Invoice' : 'Quotation';
+        const ok = confirm(`${docLabel} "${quote.number}" already exists in your saved history.\n\nDo you want to overwrite it with your current changes?`);
         if (!ok) {
-          showToast("Save cancelled. You can change the Quote Number to save as a new quote.", "warning", 4500);
+          showToast(`Save cancelled. You can change the ${docLabel} Number to save as a new document.`, "warning", 4500);
           return;
         }
         history[existingIdx] = quote;
       } else {
         history.unshift(quote);
-        commitQuoteNumberSeq(quote.number);
+        if (currentDocType === 'invoice') {
+          commitInvoiceNumberSeq(quote.number);
+        } else {
+          commitQuoteNumberSeq(quote.number);
+        }
       }
 
       localStorage.setItem('maruti_quotes', JSON.stringify(history));
@@ -4163,6 +4578,10 @@
         document.getElementById('clientGstin').value = "";
         document.getElementById('clientAddress').value = "";
         initDates();
+        setDocType('quotation', false);
+        if (document.getElementById('invoicePoNumber')) document.getElementById('invoicePoNumber').value = "";
+        if (document.getElementById('invoicePoDate')) document.getElementById('invoicePoDate').value = "";
+        if (document.getElementById('invoiceEwayBill')) document.getElementById('invoiceEwayBill').value = "";
         
         // Assign next sequential quotation number
         document.getElementById('quoteNumber').value = generateNextQuoteNumber();
@@ -4207,22 +4626,32 @@
     function renderHistoryTable() {
       const history = JSON.parse(localStorage.getItem('maruti_quotes') || '[]');
       const tbody = document.getElementById('historyTableBody');
-      const filter = document.getElementById('historyStaffFilter')?.value || 'ALL';
+      const staffFilter = document.getElementById('historyStaffFilter')?.value || 'ALL';
+      const docTypeFilter = document.getElementById('historyDocTypeFilter')?.value || 'ALL';
       const countEl = document.getElementById('historyFilteredCount');
       tbody.innerHTML = '';
 
       const filtered = history.filter(q => {
-        if (filter === 'ALL') return true;
-        if (filter === 'MY') {
-          return (q.preparedBy?.id === currentUserId) || (q.preparedBy?.name === getCurrentUser().name);
+        // Staff filter
+        if (staffFilter === 'MY') {
+          if ((q.preparedBy?.id !== currentUserId) && (q.preparedBy?.name !== getCurrentUser().name)) return false;
+        } else if (staffFilter !== 'ALL') {
+          if ((q.preparedBy?.id !== staffFilter) && (q.preparedBy?.name !== users.find(u => u.id === staffFilter)?.name)) return false;
         }
-        return (q.preparedBy?.id === filter) || (q.preparedBy?.name === users.find(u => u.id === filter)?.name);
+        
+        // Document type filter
+        if (docTypeFilter !== 'ALL') {
+          const dt = q.docType || 'quotation';
+          if (dt !== docTypeFilter) return false;
+        }
+
+        return true;
       });
 
       if (countEl) countEl.innerText = filtered.length;
 
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:24px; color:#64748B;">No quotations found for this staff filter.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:24px; color:#64748B;">No saved documents found matching filters.</td></tr>';
         return;
       }
 
@@ -4234,12 +4663,20 @@
           total += tax + (tax * ((it.gst || 0) / 100));
         });
         const st = q.status || 'draft';
+        const isInv = q.docType === 'invoice';
+        const docBadge = isInv
+          ? '<span class="badge" style="background:#0F766E; color:#fff; font-size:0.62rem; padding:1px 5px; margin-right:3px;">🧾 INVOICE</span>'
+          : '<span class="badge" style="background:#3F527D; color:#fff; font-size:0.62rem; padding:1px 5px; margin-right:3px;">📝 QUOTE</span>';
+
         const staffName = q.preparedBy?.name || 'Maruti Admin';
         const staffRole = q.preparedBy?.role || 'Staff';
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>
-            <strong>${escapeHtml(q.number)}</strong>
+            <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+              ${docBadge}
+              <strong>${escapeHtml(q.number)}</strong>
+            </div>
             <div style="margin-top:2px;"><span class="badge status-badge-${st}" style="font-size:0.65rem; padding:2px 6px;">${st.toUpperCase()}</span></div>
           </td>
           <td>${escapeHtml(q.date)}</td>
@@ -4250,8 +4687,9 @@
           <td>${escapeHtml(q.client?.name || 'Walk-in')}</td>
           <td style="text-align:right; font-weight:600; font-variant-numeric:tabular-nums;">₹ ${formatCurrency(Math.round(total))}</td>
           <td style="text-align:center; white-space:nowrap;">
-            <button class="btn btn-sm btn-primary" onclick="loadQuoteFromHistory(${idx})">Load</button>
-            <button class="btn btn-sm btn-danger" onclick="deleteQuoteFromHistory(${idx})">&times;</button>
+            <button class="btn btn-sm btn-primary" style="padding:3px 7px; font-size:0.72rem; margin-right:2px;" onclick="loadQuoteFromHistory(${idx})">Load</button>
+            ${!isInv ? `<button class="btn btn-sm btn-outline" style="color:#0F766E; border-color:#0F766E; padding:3px 7px; font-size:0.72rem; margin-right:2px;" onclick="convertQuoteToInvoice(${idx})" title="Convert Quotation to GST Tax Invoice">🧾 To Inv</button>` : ''}
+            <button class="btn btn-sm btn-danger" style="padding:3px 6px; font-size:0.72rem;" onclick="deleteQuoteFromHistory(${idx})">&times;</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -4260,6 +4698,18 @@
 
     function closeHistoryModal() {
       document.getElementById('historyModal').classList.remove('active');
+    }
+
+    function convertQuoteToInvoice(idx) {
+      loadQuoteFromHistory(idx);
+      setDocType('invoice', true);
+      if (document.getElementById('quoteStatusSelect')) {
+        document.getElementById('quoteStatusSelect').value = 'confirmed';
+      }
+      updateQuoteStatus('confirmed');
+      closeHistoryModal();
+      goToWizardStep(1);
+      showToast("🎉 Converted to Tax Invoice! Assigned next sequential Invoice number.", "success", 4000);
     }
 
     function loadQuoteFromHistory(idx) {
@@ -4278,6 +4728,18 @@
       document.getElementById('clientState').value = q.client?.state || 'Assam (18)';
       document.getElementById('clientAddress').value = q.client?.address || '';
       document.getElementById('termsConditions').value = q.terms || '';
+
+      // Restore document type
+      setDocType(q.docType || 'quotation', false);
+
+      // Restore invoice specifics if available
+      if (q.invoiceDetails) {
+        if (document.getElementById('invoicePoNumber')) document.getElementById('invoicePoNumber').value = q.invoiceDetails.poNumber || '';
+        if (document.getElementById('invoicePoDate')) document.getElementById('invoicePoDate').value = q.invoiceDetails.poDate || '';
+        if (document.getElementById('invoicePaymentTerms')) document.getElementById('invoicePaymentTerms').value = q.invoiceDetails.paymentTerms || 'Due on Receipt';
+        if (document.getElementById('invoicePaymentStatus')) document.getElementById('invoicePaymentStatus').value = q.invoiceDetails.paymentStatus || 'unpaid';
+        if (document.getElementById('invoiceEwayBill')) document.getElementById('invoiceEwayBill').value = q.invoiceDetails.ewayBill || '';
+      }
 
       const status = q.status || 'draft';
       if (document.getElementById('quoteStatusSelect')) {
@@ -4303,19 +4765,254 @@
       renderTable();
       closeHistoryModal();
       goToWizardStep(1);
-      showToast(`Loaded quotation ${q.number}`, "success");
+      showToast(`Loaded document ${q.number}`, "success");
     }
 
     function deleteQuoteFromHistory(idx) {
       let history = JSON.parse(localStorage.getItem('maruti_quotes') || '[]');
       const quoteNo = history[idx]?.number || 'Quote';
-      if (confirm(`Delete ${quoteNo} from saved quotations?`)) {
+      if (confirm(`Delete ${quoteNo} from saved documents?`)) {
         history.splice(idx, 1);
         localStorage.setItem('maruti_quotes', JSON.stringify(history));
         updateSavedCount();
         openHistoryModal();
-        showToast("Quotation deleted", "info");
+        showToast("Document deleted", "info");
       }
+    }
+
+    // ============================================================
+    // CLIENT HISTORY & BUSINESS ANALYTICS DASHBOARD
+    // ============================================================
+    function openAnalyticsModal() {
+      renderAnalyticsDashboard();
+      document.getElementById('analyticsModal').classList.add('active');
+    }
+
+    function closeAnalyticsModal() {
+      document.getElementById('analyticsModal').classList.remove('active');
+    }
+
+    function closeClientTimelineDrawer() {
+      document.getElementById('analyticsClientTimelineDrawer').style.display = 'none';
+    }
+
+    function renderAnalyticsDashboard() {
+      const history = JSON.parse(localStorage.getItem('maruti_quotes') || '[]');
+      const custs = (typeof customers !== 'undefined' && Array.isArray(customers)) ? customers : [];
+
+      let totalQuotesCount = 0;
+      let totalInvoicesCount = 0;
+      let totalPipelineVal = 0;
+      let totalInvoicedVal = 0;
+      let draftCount = 0;
+      let sentCount = 0;
+      let wonCount = 0;
+      let lostCount = 0;
+
+      history.forEach(q => {
+        let qTotal = 0;
+        (q.items || []).forEach(it => {
+          const b = (it.qty * it.rate);
+          qTotal += b + (b * ((it.gst || 0) / 100));
+        });
+        qTotal = Math.round(qTotal);
+
+        const isInv = q.docType === 'invoice';
+        if (isInv) {
+          totalInvoicesCount++;
+          totalInvoicedVal += qTotal;
+        } else {
+          totalQuotesCount++;
+          totalPipelineVal += qTotal;
+        }
+
+        const st = (q.status || 'draft').toLowerCase();
+        if (st === 'draft') draftCount++;
+        else if (st === 'sent') sentCount++;
+        else if (st === 'confirmed' || st === 'invoiced' || isInv) wonCount++;
+        else if (st === 'expired' || st === 'lost') lostCount++;
+      });
+
+      const winRate = history.length > 0 ? ((wonCount / history.length) * 100).toFixed(1) : '0.0';
+
+      const pValEl = document.getElementById('anTotalPipelineValue');
+      if (pValEl) pValEl.innerText = '₹ ' + formatCurrency(totalPipelineVal);
+      const qCntEl = document.getElementById('anTotalQuotesCount');
+      if (qCntEl) qCntEl.innerText = totalQuotesCount;
+
+      const invValEl = document.getElementById('anTotalInvoicedValue');
+      if (invValEl) invValEl.innerText = '₹ ' + formatCurrency(totalInvoicedVal);
+      const invCntEl = document.getElementById('anTotalInvoicesCount');
+      if (invCntEl) invCntEl.innerText = totalInvoicesCount;
+
+      const rateEl = document.getElementById('anConversionRate');
+      if (rateEl) rateEl.innerText = winRate + '%';
+      const cCntEl = document.getElementById('anActiveClientsCount');
+      if (cCntEl) cCntEl.innerText = custs.length;
+
+      const dEl = document.getElementById('anStatusDraftCount');
+      if (dEl) dEl.innerText = draftCount;
+      const sEl = document.getElementById('anStatusSentCount');
+      if (sEl) sEl.innerText = sentCount;
+      const wEl = document.getElementById('anStatusWonCount');
+      if (wEl) wEl.innerText = wonCount;
+      const lEl = document.getElementById('anStatusLostCount');
+      if (lEl) lEl.innerText = lostCount;
+
+      renderAnalyticsClientTable();
+    }
+
+    function renderAnalyticsClientTable() {
+      const history = JSON.parse(localStorage.getItem('maruti_quotes') || '[]');
+      const custs = (typeof customers !== 'undefined' && Array.isArray(customers)) ? customers : [];
+      const tbody = document.getElementById('analyticsClientTableBody');
+      const search = (document.getElementById('analyticsSearchInput')?.value || '').toLowerCase().trim();
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const clientStats = custs.map(c => {
+        const clientQuotes = history.filter(q => {
+          const qName = (q.client?.name || '').toLowerCase();
+          const cName = (c.name || '').toLowerCase();
+          const qPhone = (q.client?.phone || '');
+          const cPhone = (c.phone || '');
+          return (qName && cName && (qName === cName || qName.includes(cName) || cName.includes(qName))) || (qPhone && cPhone && qPhone === cPhone);
+        });
+
+        let quotesCount = 0;
+        let invoicesCount = 0;
+        let quotedVal = 0;
+        let invoicedVal = 0;
+
+        clientQuotes.forEach(q => {
+          let qTotal = 0;
+          (q.items || []).forEach(it => {
+            const b = (it.qty * it.rate);
+            qTotal += b + (b * ((it.gst || 0) / 100));
+          });
+          qTotal = Math.round(qTotal);
+          if (q.docType === 'invoice') {
+            invoicesCount++;
+            invoicedVal += qTotal;
+          } else {
+            quotesCount++;
+            quotedVal += qTotal;
+          }
+        });
+
+        return {
+          client: c,
+          quotesCount,
+          invoicesCount,
+          quotedVal,
+          invoicedVal,
+          historyItems: clientQuotes
+        };
+      });
+
+      const filtered = clientStats.filter(cs => {
+        if (!search) return true;
+        const nameMatch = (cs.client.name || '').toLowerCase().includes(search);
+        const gstinMatch = (cs.client.gstin || '').toLowerCase().includes(search);
+        return nameMatch || gstinMatch;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#64748B;">No matching client records found.</td></tr>';
+        return;
+      }
+
+      filtered.forEach(cs => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid #E2E8F0';
+        tr.innerHTML = `
+          <td style="padding:8px 12px;">
+            <div style="font-weight:700; color:#1E293B;">${escapeHtml(cs.client.name)}</div>
+            <div style="font-size:0.72rem; color:#64748B;">Attn: ${escapeHtml(cs.client.contact || '-')} | ${escapeHtml(cs.client.phone || '-')}</div>
+          </td>
+          <td style="padding:8px 12px; font-size:0.75rem;">
+            <div>${escapeHtml(cs.client.gstin || 'Unregistered')}</div>
+            <div style="font-size:0.7rem; color:#64748B;">${escapeHtml(cs.client.state || 'Assam (18)')}</div>
+          </td>
+          <td style="padding:8px 12px; text-align:center; font-weight:700;">${cs.quotesCount}</td>
+          <td style="padding:8px 12px; text-align:center; font-weight:700; color:#0F766E;">${cs.invoicesCount}</td>
+          <td style="padding:8px 12px; text-align:right; font-variant-numeric:tabular-nums; font-weight:600;">₹ ${formatCurrency(cs.quotedVal)}</td>
+          <td style="padding:8px 12px; text-align:right; font-variant-numeric:tabular-nums; font-weight:700; color:#0F766E;">₹ ${formatCurrency(cs.invoicedVal)}</td>
+          <td style="padding:8px 12px; text-align:center;">
+            <button class="btn btn-sm btn-outline" style="font-size:0.72rem; padding:3px 8px;" onclick="viewClientTimeline('${cs.client.id}')">📜 Timeline (${cs.historyItems.length})</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function viewClientTimeline(clientId) {
+      const c = (customers || []).find(cust => cust.id === clientId);
+      if (!c) return;
+      const history = JSON.parse(localStorage.getItem('maruti_quotes') || '[]');
+      const clientQuotes = history.filter(q => {
+        const qName = (q.client?.name || '').toLowerCase();
+        const cName = (c.name || '').toLowerCase();
+        const qPhone = (q.client?.phone || '');
+        const cPhone = (c.phone || '');
+        return (qName && cName && (qName === cName || qName.includes(cName) || cName.includes(qName))) || (qPhone && cPhone && qPhone === cPhone);
+      });
+
+      const drawer = document.getElementById('analyticsClientTimelineDrawer');
+      const title = document.getElementById('anTimelineClientName');
+      const subtitle = document.getElementById('anTimelineClientSubtitle');
+      const tbody = document.getElementById('anTimelineTableBody');
+
+      if (title) title.innerText = `📜 Timeline: ${c.name}`;
+      if (subtitle) subtitle.innerText = `${clientQuotes.length} document(s) generated for this client profile.`;
+      if (tbody) tbody.innerHTML = '';
+
+      if (clientQuotes.length === 0) {
+        if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:16px; color:#64748B;">No quotations or invoices generated for this client yet.</td></tr>';
+      } else if (tbody) {
+        clientQuotes.forEach(q => {
+          const idx = history.findIndex(h => h.number === q.number);
+          let total = 0;
+          (q.items || []).forEach(it => {
+            const b = (it.qty * it.rate);
+            total += b + (b * ((it.gst || 0) / 100));
+          });
+          total = Math.round(total);
+          const isInv = q.docType === 'invoice';
+          const typeBadge = isInv 
+            ? '<span class="badge" style="background:#0F766E; color:#fff; font-size:0.65rem; padding:2px 6px;">🧾 INVOICE</span>'
+            : '<span class="badge" style="background:#3F527D; color:#fff; font-size:0.65rem; padding:2px 6px;">📝 QUOTE</span>';
+
+          const tr = document.createElement('tr');
+          tr.style.borderBottom = '1px solid #E2E8F0';
+          tr.innerHTML = `
+            <td style="padding:6px 10px; font-weight:700;">${escapeHtml(q.number)}</td>
+            <td style="padding:6px 10px;">${typeBadge}</td>
+            <td style="padding:6px 10px;">${escapeHtml(q.date)}</td>
+            <td style="padding:6px 10px; font-size:0.75rem;">👤 ${escapeHtml(q.preparedBy?.name || 'Admin')}</td>
+            <td style="padding:6px 10px; text-align:right; font-weight:700;">₹ ${formatCurrency(total)}</td>
+            <td style="padding:6px 10px; text-align:center;"><span class="badge status-badge-${q.status || 'draft'}" style="font-size:0.65rem; padding:2px 6px;">${(q.status || 'draft').toUpperCase()}</span></td>
+            <td style="padding:6px 10px; text-align:center; white-space:nowrap;">
+              <button class="btn btn-sm btn-primary" style="padding:2px 6px; font-size:0.7rem;" onclick="closeAnalyticsModal(); loadQuoteFromHistory(${idx});">Load</button>
+              ${!isInv ? `<button class="btn btn-sm btn-outline" style="color:#0F766E; border-color:#0F766E; padding:2px 6px; font-size:0.7rem;" onclick="closeAnalyticsModal(); convertQuoteToInvoice(${idx});">🧾 To Invoice</button>` : ''}
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      if (drawer) {
+        drawer.style.display = 'block';
+        drawer.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    function viewClientHistoryFromDirectory(clientId) {
+      closeCustomerModal();
+      openAnalyticsModal();
+      setTimeout(() => {
+        viewClientTimeline(clientId);
+      }, 200);
     }
 
     // Dedicated Data Backup & Restore Center
@@ -4475,6 +5172,8 @@
       labelSaved: "📂 Saved",
       showBackup: true,
       labelBackup: "💾 Backup",
+      showAnalytics: true,
+      labelAnalytics: "📊 Analytics",
       customMenus: []
     };
 
@@ -4493,21 +5192,25 @@
       const cCheck = document.getElementById('cfgMenuClients');
       const sCheck = document.getElementById('cfgMenuSaved');
       const bCheck = document.getElementById('cfgMenuBackup');
+      const aCheck = document.getElementById('cfgMenuAnalytics');
 
       if (pCheck) cfg.showProducts = pCheck.checked;
       if (cCheck) cfg.showClients = cCheck.checked;
       if (sCheck) cfg.showSaved = sCheck.checked;
       if (bCheck) cfg.showBackup = bCheck.checked;
+      if (aCheck) cfg.showAnalytics = aCheck.checked;
 
       const pLabel = document.getElementById('cfgLabelProducts')?.value.trim();
       const cLabel = document.getElementById('cfgLabelClients')?.value.trim();
       const sLabel = document.getElementById('cfgLabelSaved')?.value.trim();
       const bLabel = document.getElementById('cfgLabelBackup')?.value.trim();
+      const aLabel = document.getElementById('cfgLabelAnalytics')?.value.trim();
 
       if (pLabel) cfg.labelProducts = pLabel;
       if (cLabel) cfg.labelClients = cLabel;
       if (sLabel) cfg.labelSaved = sLabel;
       if (bLabel) cfg.labelBackup = bLabel;
+      if (aLabel) cfg.labelAnalytics = aLabel;
 
       localStorage.setItem('maruti_menu_config', JSON.stringify(cfg));
       applyMenuConfig();
@@ -4534,6 +5237,12 @@
         btnSaved.style.display = cfg.showSaved ? '' : 'none';
         const qCount = JSON.parse(localStorage.getItem('maruti_quotes') || '[]').length;
         btnSaved.innerHTML = `${cfg.labelSaved} (<span id="savedCount">${qCount}</span>)`;
+      }
+
+      const btnAnalytics = document.getElementById('navBtnAnalytics');
+      if (btnAnalytics) {
+        btnAnalytics.style.display = (cfg.showAnalytics !== false) ? '' : 'none';
+        btnAnalytics.innerText = cfg.labelAnalytics || "📊 Analytics";
       }
 
       const btnBackup = document.getElementById('navBtnBackup');
@@ -4573,11 +5282,14 @@
       if (sCheck) sCheck.checked = !!cfg.showSaved;
       const bCheck = document.getElementById('cfgMenuBackup');
       if (bCheck) bCheck.checked = !!cfg.showBackup;
+      const aCheck = document.getElementById('cfgMenuAnalytics');
+      if (aCheck) aCheck.checked = cfg.showAnalytics !== false;
 
       if (document.getElementById('cfgLabelProducts')) document.getElementById('cfgLabelProducts').value = cfg.labelProducts || '📦 Products';
       if (document.getElementById('cfgLabelClients')) document.getElementById('cfgLabelClients').value = cfg.labelClients || '👥 Clients';
       if (document.getElementById('cfgLabelSaved')) document.getElementById('cfgLabelSaved').value = cfg.labelSaved || '📂 Saved';
       if (document.getElementById('cfgLabelBackup')) document.getElementById('cfgLabelBackup').value = cfg.labelBackup || '💾 Backup';
+      if (document.getElementById('cfgLabelAnalytics')) document.getElementById('cfgLabelAnalytics').value = cfg.labelAnalytics || '📊 Analytics';
 
       renderCustomMenusList();
     }
